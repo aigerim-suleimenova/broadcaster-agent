@@ -7,8 +7,8 @@ export const CustomAssistantMessage = (props: AssistantMessageProps) => {
   return (
     <div className="pb-4">
       {(message || isLoading) && (
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
+        <div >
+          <div>
             <Markdown content={message?.content || ""} />
             {isLoading && (
               <div className="flex items-center gap-2 text-xs text-blue-500">

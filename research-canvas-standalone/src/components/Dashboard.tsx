@@ -94,74 +94,76 @@ export function Dashboard({ broadcasterData }: DashboardProps) {
   return (
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full">
         {/* Broadcaster Info Cards */}
-        <Card className="col-span-1 md:col-span-1 lg:col-span-1">
+        <Card className="col-span-1 md:col-span-1 lg:col-span-1 bg-slate-800/50 border-slate-600/40 hover:border-slate-500/60 shadow-md shadow-slate-950/30 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Globe className="w-4 h-4" /> Broadcaster
+            <CardTitle className="text-sm font-medium flex items-center gap-2 text-slate-300">
+              <Globe className="w-4 h-4 text-slate-400" /> Broadcaster
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-slate-100">
               {broadcasterData.broadcasterName}
             </p>
-            <p className="text-xs text-gray-500">{broadcasterData.domain}</p>
+            <p className="text-xs text-slate-400">{broadcasterData.domain}</p>
           </CardContent>
         </Card>
 
-        <Card className="col-span-1 md:col-span-1 lg:col-span-1">
+        <Card className="col-span-1 md:col-span-1 lg:col-span-1 bg-slate-800/50 border-slate-600/40 hover:border-slate-500/60 shadow-md shadow-slate-950/30 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Server className="w-4 h-4" /> Primary Ad Server
+            <CardTitle className="text-sm font-medium flex items-center gap-2 text-slate-300">
+              <Server className="w-4 h-4 text-slate-400" /> Primary Ad Server
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-slate-100">
               {broadcasterData.adServer}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-400">
               {broadcasterData.adServer === "Unknown" ? "Not found" : "Detected"}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="col-span-1 md:col-span-1 lg:col-span-1">
+        <Card className="col-span-1 md:col-span-1 lg:col-span-1 bg-slate-800/50 border-slate-600/40 hover:border-slate-500/60 shadow-md shadow-slate-950/30 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Radio className="w-4 h-4" /> SSP Partners
+            <CardTitle className="text-sm font-medium flex items-center gap-2 text-slate-300">
+              <Radio className="w-4 h-4 text-slate-400" /> SSP Partners
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-slate-100">
               {broadcasterData.fundamentSSPs.length}
             </p>
-            <p className="text-xs text-gray-500">partnerships</p>
+            <p className="text-xs text-slate-400">partnerships</p>
           </CardContent>
         </Card>
 
         <Card
-          className={`col-span-1 md:col-span-1 lg:col-span-1 ${
-            broadcasterData.smartclipPresent ? "border-green-200" : "border-red-200"
-          }`}
+          className={`col-span-1 md:col-span-1 lg:col-span-1 bg-slate-800/50 ${
+            broadcasterData.smartclipPresent
+              ? "border-green-700/40 hover:border-green-600/50 shadow-md shadow-green-950/20"
+              : "border-amber-700/40 hover:border-amber-600/50 shadow-md shadow-amber-950/20"
+          } transition-all duration-300`}
         >
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               {broadcasterData.smartclipPresent ? (
                 <CheckCircle className="w-4 h-4 text-green-600" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-red-600" />
+                <AlertCircle className="w-4 h-4 text-amber-600" />
               )}
-              SmartClip Integration
+              <span className={broadcasterData.smartclipPresent ? "text-green-300" : "text-amber-300"}>SmartClip Integration</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p
               className={`text-2xl font-bold ${
-                broadcasterData.smartclipPresent ? "text-green-600" : "text-red-600"
+                broadcasterData.smartclipPresent ? "text-green-200" : "text-amber-200"
               }`}
             >
               {broadcasterData.smartclipPresent ? "Found" : "Not Found"}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${broadcasterData.smartclipPresent ? "text-green-300/70" : "text-amber-300/70"}`}>
               {broadcasterData.smartclipPresent
                 ? "Integration ready"
                 : "Needs integration"}
@@ -170,10 +172,10 @@ export function Dashboard({ broadcasterData }: DashboardProps) {
         </Card>
 
         {/* SSP Distribution Chart */}
-        <Card className="col-span-1 md:col-span-2 lg:col-span-2">
+        <Card className="col-span-1 md:col-span-2 lg:col-span-2 bg-slate-800/50 border-slate-600/40 hover:border-slate-500/60 shadow-md shadow-slate-950/30 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">SSP Distribution</CardTitle>
-            <CardDescription>Active supply-side platforms</CardDescription>
+            <CardTitle className="text-sm font-medium text-slate-300">SSP Distribution</CardTitle>
+            <CardDescription className="text-slate-400">Active supply-side platforms</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-60">
@@ -181,19 +183,19 @@ export function Dashboard({ broadcasterData }: DashboardProps) {
                 data={sspDistribution}
                 index="name"
                 category="value"
-                colors={["#8b5cf6", "#7c3aed", "#6d28d9"]}
+                colors={["#64748b", "#78716c", "#57534e"]}
               />
             </div>
           </CardContent>
         </Card>
 
         {/* Technology Stack Chart */}
-        <Card className="col-span-1 md:col-span-2 lg:col-span-2">
+        <Card className="col-span-1 md:col-span-2 lg:col-span-2 bg-slate-800/50 border-slate-600/40 hover:border-slate-500/60 shadow-md shadow-slate-950/30 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-slate-300">
               Technology Stack Overview
             </CardTitle>
-            <CardDescription>Detected infrastructure components</CardDescription>
+            <CardDescription className="text-slate-400">Detected infrastructure components</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-60">
@@ -209,17 +211,17 @@ export function Dashboard({ broadcasterData }: DashboardProps) {
 
         {/* Active Partners */}
         {broadcasterData.fundamentSSPs.length > 0 && (
-          <Card className="col-span-1 md:col-span-4 lg:col-span-4">
+          <Card className="col-span-1 md:col-span-4 lg:col-span-4 bg-slate-800/50 border-slate-600/40 hover:border-slate-500/60 shadow-md shadow-slate-950/30 transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Active Partners</CardTitle>
-              <CardDescription>Click to view details</CardDescription>
+              <CardTitle className="text-sm font-medium text-slate-300">Active Partners</CardTitle>
+              <CardDescription className="text-slate-400">Click to view details</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {broadcasterData.fundamentSSPs.map((ssp) => (
                   <button
                     key={ssp}
-                    className="px-3 py-1 bg-purple-100 border border-purple-300 hover:bg-purple-200 rounded text-xs text-purple-900 transition-colors"
+                    className="px-3 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-xs text-slate-200 font-medium transition-all duration-300 hover:shadow-md hover:shadow-slate-950/40"
                   >
                     {ssp}
                   </button>

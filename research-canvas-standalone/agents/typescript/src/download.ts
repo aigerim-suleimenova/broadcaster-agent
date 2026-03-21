@@ -9,10 +9,21 @@ import { AgentState } from "./state";
 import { htmlToText } from "html-to-text";
 import { copilotkitEmitState } from "@copilotkit/sdk-js/langgraph";
 
-const RESOURCE_CACHE: Record<string, string> = {};
+// LRU cache to prevent unbounded memory growth
+const MAX_CACHE_SIZE = 50;
+const RESOURCE_CACHE = new Map<
+  string,
+  { content: string; timestamp: number }
+>();
 
 export function getResource(url: string): string {
-  return RESOURCE_CACHE[url] || "";
+  const cached = RESOURCE_CACHE.get(url);
+  if (cached) {
+    // Update timestamp for LRU
+    cached.timestamp = Date.now();
+    return cached.content;
+  }
+  return "";
 }
 
 const USER_AGENT =
@@ -35,12 +46,26 @@ async function downloadResource(url: string): Promise<string> {
 
     const htmlContent = await response.text();
     const markdownContent = htmlToText(htmlContent);
-    RESOURCE_CACHE[url] = markdownContent;
+
+    // Evict oldest entry if cache is full (LRU policy)
+    if (RESOURCE_CACHE.size >= MAX_CACHE_SIZE) {
+      const oldestKey = Array.from(RESOURCE_CACHE.entries()).sort(
+        (a, b) => a[1].timestamp - b[1].timestamp,
+      )[0][0];
+      RESOURCE_CACHE.delete(oldestKey);
+    }
+
+    RESOURCE_CACHE.set(url, {
+      content: markdownContent,
+      timestamp: Date.now(),
+    });
     return markdownContent;
   } catch (error) {
     clearTimeout(timeoutId);
-    RESOURCE_CACHE[url] = "ERROR";
-    return `Error downloading resource: ${error}`;
+    // Store error message, not full content
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    RESOURCE_CACHE.set(url, { content: "ERROR", timestamp: Date.now() });
+    return `Error downloading resource: ${errorMsg}`;
   }
 }
 

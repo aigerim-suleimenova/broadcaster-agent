@@ -127,6 +127,7 @@ export default function Pipeline() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const pipelineContextRef = useRef<PipelineContext | null>(null);
 
   const handleTermClick = useCallback(() => {}, []);
@@ -143,10 +144,23 @@ export default function Pipeline() {
   useEffect(() => {
     const timer = setTimeout(scrollToBottom, 300);
     return () => clearTimeout(timer);
-  }, [stages, stageStatuses, scrollToBottom]);
+  }, [stages, stageStatuses]);
+
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const runPipeline = async (name: string) => {
     abortRef.current = false;
+    // Create abort controller for this pipeline run
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     const initialStages = [
       { messages: [], isCheckpoint: false },
       { messages: [], isCheckpoint: false },
@@ -175,6 +189,8 @@ export default function Pipeline() {
 
     // Stage 0 is interactive (ResearchCanvas) - skip LLM, move to Stage 1 after delay
     await new Promise((res) => setTimeout(res, 1000));
+    if (abortRef.current || abortController.signal.aborted) return;
+
     setStageStatuses((prev) => {
       const n = [...prev];
       n[0] = "complete";
@@ -183,7 +199,7 @@ export default function Pipeline() {
 
     // Stages 1-4 run through LLM prompts or deterministic analysis
     for (let i = 1; i < 5; i++) {
-      if (abortRef.current) return;
+      if (abortRef.current || abortController.signal.aborted) return;
 
       // Mark active
       setStageStatuses((prev) => {
@@ -204,6 +220,7 @@ export default function Pipeline() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ domain }),
+            signal: abortController.signal,
           }).then(async res => {
             if (!res.ok) {
               let errorMsg = `HTTP ${res.status} ${res.statusText}`;
@@ -264,23 +281,23 @@ export default function Pipeline() {
         // Stage 2: Compatibility Analysis (receives Stage 1 context)
         else if (i === 2) {
           const enhancedPrompt = `You are a compatibility analysis agent for programmatic advertising migrations.
-Analyze "${name}"'s compatibility with smartclip transition.
+          Analyze "${name}"'s compatibility with smartclip transition.
 
-CURRENT TECH STACK:
-- Primary Ad Server: ${context.adServer}
-- Current SSPs: ${context.fundamentSSPs.length > 0 ? context.fundamentSSPs.join(", ") : "Unknown"}
-- smartclip already integrated: ${context.smartclipPresent ? "Yes" : "No"}
+          CURRENT TECH STACK:
+          - Primary Ad Server: ${context.adServer}
+          - Current SSPs: ${context.fundamentSSPs.length > 0 ? context.fundamentSSPs.join(", ") : "Unknown"}
+          - smartclip already integrated: ${context.smartclipPresent ? "Yes" : "No"}
 
-Analyze this broadcaster's infrastructure, technology maturity, and integration complexity.
-Return a JSON object with exactly this structure:
-{
-  "messages": [
-    "Analyzing compatibility for ${name}...",
-    "<detailed compatibility assessment - 2-3 sentences>",
-    "<migration risk level and technical challenges>",
-    "Compatibility Score: [0-100]/100"
-  ]
-}`;
+          Analyze this broadcaster's infrastructure, technology maturity, and integration complexity.
+          Return a JSON object with exactly this structure:
+          {
+          "messages": [
+          "Analyzing compatibility for ${name}...",
+          "<detailed compatibility assessment - 2-3 sentences>",
+          "<migration risk level and technical challenges>",
+          "Compatibility Score: [0-100]/100"
+          ]
+          }`;
 
           if (!enhancedPrompt.trim()) {
             throw new Error("Stage 2 prompt is empty");
@@ -291,6 +308,7 @@ Return a JSON object with exactly this structure:
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: enhancedPrompt, model }),
+            signal: abortController.signal,
           }).then(async res => {
             if (!res.ok) {
               let errorMsg = `HTTP ${res.status} ${res.statusText}`;
@@ -349,6 +367,7 @@ Use realistic names and senior titles like Director/VP/Head of Digital Sales, Pr
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: enhancedPrompt, model }),
+            signal: abortController.signal,
           }).then(async res => {
             if (!res.ok) {
               let errorMsg = `HTTP ${res.status} ${res.statusText}`;
@@ -408,6 +427,7 @@ Return a JSON object with exactly this structure:
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: enhancedPrompt, model }),
+            signal: abortController.signal,
           }).then(async res => {
             if (!res.ok) {
               let errorMsg = `HTTP ${res.status} ${res.statusText}`;
@@ -706,7 +726,7 @@ Return a JSON object with exactly this structure:
                     </div>
                   </div>
                   ) : activeStage === 1 ? (
-                          <div className="flex flex-1 relative z-10 w-full h-full" style={{ height: "calc(100% - 0px)" }}>
+                  <div className="flex flex-1 relative z-10 w-full h-full" style={{ height: "calc(100% - 0px)" }}>
                     <div className="flex-1 overflow-hidden w-full">
                       <Analysis broadcasterData={broadcasterData} />
                     </div>

@@ -1,9 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Poppins", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
 }
 
 @layer utilities {
@@ -94,8 +98,12 @@ body {
 }
 
 .copilotKitMessage.copilotKitUserMessage {
-  border-radius: 0.5rem 0.5rem 0 0.5rem;
-  color: #0a1628 !important;
+  border-radius: 25px;
+  color: #bcbcbc !important;
+  background-color: #bcbcbc25 !important;
+  font-size: 20px !important;
+  font-weight: 400 !important;
+  padding: 16px 43px !important;
 }
 
 .copilotKitMessage.copilotKitUserMessage * {
@@ -139,6 +147,14 @@ body {
   color: #ffffff !important;
 }
 
+.copilotKitMarkdownElement {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: #bcbcbc;
+  transition: all 0.3s ease;
+  line-height: 26px;
+}
+
 .copilotKitMessage p,
 .copilotKitMessage span,
 .copilotKitMessage div,
@@ -158,20 +174,26 @@ body {
 }
 
 .copilotKitInput {
-  background-color: transparent !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #bcbcbc25 !important;
+  border: 1px solid #ffffff80 !important;
+}
+.textarea {
+  color: #fff !important;
+  font-size: 20px !important;
 }
 
 .copilotKitInput > textarea {
   background-color: transparent !important;
   color: #ffffff !important;
-  border: 1px solid transparent !important;
+  border: none !important;
+  font-size: 20px !important;
   border-radius: 0.75rem !important;
   padding: 0.75rem 1rem !important;
 }
 
 .copilotKitInput > textarea::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
+  font-size: 20px !important;
+  font-weight: 400 !important; /* Text color */ /* Letter spacing */
 }
 
 .copilotKitInput > textarea:focus {
@@ -183,6 +205,27 @@ body {
   color: #a78bfa !important;
 }
 
-.copilotKitInput > .copilotKitInputControls > button:not([disabled]) {
+.copilotKitInput > .copilotKitInputControls > button {
   color: var(--copilot-kit-secondary-color);
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  min-width: 2.5rem !important;
+  min-height: 2.5rem !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4) !important;
+  flex-shrink: 0;
+}
+
+.copilotKitInput > .copilotKitInputControls > button:not([disabled]):hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 24px rgba(236, 72, 153, 0.6) !important;
 }
