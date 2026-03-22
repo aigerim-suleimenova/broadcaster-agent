@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Play, RotateCcw } from "lucide-react";
+import { Play, RotateCcw, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PipelineStage from "@/components/pipeline/PipelineStage";
 import { ResearchCanvas } from "@/components/ResearchCanvas";
@@ -109,6 +109,7 @@ export default function Pipeline() {
 
   const [broadcasterName, setBroadcasterName] = useState("");
   const [running, setRunning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [stageStatuses, setStageStatuses] = useState<
     Array<"pending" | "active" | "complete">
   >([]);
@@ -187,8 +188,11 @@ export default function Pipeline() {
       primaryContact: "",
     };
 
-    // Stage 0 is interactive (ResearchCanvas) - skip LLM, move to Stage 1 after delay
-    await new Promise((res) => setTimeout(res, 1000));
+    // Store context in ref for later use by handleProceedToNextStage
+    pipelineContextRef.current = context;
+
+    // Stage 0 is interactive (ResearchCanvas) - complete it immediately
+    await new Promise((res) => setTimeout(res, 500));
     if (abortRef.current || abortController.signal.aborted) return;
 
     setStageStatuses((prev) => {
@@ -197,91 +201,65 @@ export default function Pipeline() {
       return n;
     });
 
-    // Stages 1-4 run through LLM prompts or deterministic analysis
-    for (let i = 1; i < 5; i++) {
-      if (abortRef.current || abortController.signal.aborted) return;
+    // STOP HERE - Wait for user to click "Proceed" button to advance to Stage 1
+    // The agent does NOT auto-advance through stages anymore
+    setIsProcessing(false);
+  };
 
-      // Mark active
+  // Handler to process the next stage when user clicks "Proceed"
+  const handleProceedToNextStage = async () => {
+    const nextStage = activeStage + 1;
+    if (nextStage >= stages.length) return;
+
+    setIsProcessing(true);
+
+    const context = pipelineContextRef.current || ({} as PipelineContext);
+    const abortController = abortControllerRef.current;
+    let result: { messages?: string[] } | undefined;
+
+    try {
+      // Mark next stage as active
       setStageStatuses((prev) => {
         const n = [...prev];
-        n[i] = "active";
+        n[nextStage] = "active";
         return n;
       });
-      setActiveStage(i);
+      setActiveStage(nextStage);
 
-      let result: { messages?: string[] } | undefined;
+      // Stage 1: ads.txt analysis
+      if (nextStage === 1) {
+        console.log(`[Pipeline] Stage 1: Analyzing ads.txt for ${context.domain}`);
 
-      try {
-        // Stage 1: Use deterministic ads.txt analysis instead of LLM
-        if (i === 1) {
-          console.log(`[Pipeline] Stage 1: Analyzing ads.txt for ${domain}`);
+        const adsTxtResponse = await fetch('/api/pipeline/analyze-ads-txt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: context.domain }),
+          signal: abortController?.signal,
+        }).then(async res => {
+          if (!res.ok) throw new Error('ads.txt API failed');
+          return res.json();
+        });
 
-          const adsTxtResponse = await fetch('/api/pipeline/analyze-ads-txt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ domain }),
-            signal: abortController.signal,
-          }).then(async res => {
-            if (!res.ok) {
-              let errorMsg = `HTTP ${res.status} ${res.statusText}`;
-              try {
-                const errorData = await res.json();
-                if (errorData.error) errorMsg = `${errorMsg}: ${errorData.error}`;
-              } catch (e) {
-                const text = await res.text();
-                if (text) errorMsg = `${errorMsg}: ${text.substring(0, 200)}`;
-              }
-              console.error(`[Pipeline] Stage 1 API error: ${errorMsg}`);
-              throw new Error(`Stage 1 API error: ${errorMsg}`);
-            }
-            return res.json();
+        if (adsTxtResponse.messages) {
+          result = { messages: adsTxtResponse.messages };
+          const stage1Data = extractResearchData(result.messages as string[]);
+          context.adServer = stage1Data.adServer;
+          context.fundamentSSPs = stage1Data.ssp.split(",").map(s => s.trim()).filter(s => s);
+          context.smartclipPresent = stage1Data.riskLevel === "low";
+
+          setBroadcasterData({
+            broadcasterName: context.broadcasterName,
+            domain: context.domain,
+            adServer: context.adServer,
+            fundamentSSPs: context.fundamentSSPs,
+            smartclipPresent: context.smartclipPresent,
           });
-
-          if (adsTxtResponse.messages) {
-            result = { messages: adsTxtResponse.messages };
-          }
-
-          // Extract Stage 1 data into context
-          if (result?.messages) {
-            const stage1Data = extractResearchData(result.messages as string[]);
-            context.adServer = stage1Data.adServer;
-            context.fundamentSSPs = stage1Data.ssp.split(",").map(s => s.trim()).filter(s => s);
-            context.smartclipPresent = stage1Data.riskLevel === "low";
-
-            // Store broadcaster data for Analysis component
-            setBroadcasterData({
-              broadcasterName: name,
-              domain,
-              adServer: context.adServer,
-              fundamentSSPs: context.fundamentSSPs,
-              smartclipPresent: context.smartclipPresent,
-            });
-
-            console.log(`[Pipeline] Stage 1 complete - Context updated:`, {
-              adServer: context.adServer,
-              ssps: context.fundamentSSPs,
-              smartclip: context.smartclipPresent,
-            });
-          } else {
-            console.warn(`[Pipeline] Stage 1 returned no messages, using defaults`);
-            context.adServer = "Unknown";
-            context.fundamentSSPs = [];
-            context.smartclipPresent = false;
-
-            // Store broadcaster data with defaults
-            setBroadcasterData({
-              broadcasterName: name,
-              domain,
-              adServer: "Unknown",
-              fundamentSSPs: [],
-              smartclipPresent: false,
-            });
-          }
         }
-        // Stage 2: Compatibility Analysis (receives Stage 1 context)
-        else if (i === 2) {
-          const enhancedPrompt = `You are a compatibility analysis agent for programmatic advertising migrations.
-          Analyze "${name}"'s compatibility with smartclip transition.
+      }
+      // Stage 2: Compatibility Analysis
+      else if (nextStage === 2) {
+        const enhancedPrompt = `You are a compatibility analysis agent for programmatic advertising migrations.
+          Analyze "${context.broadcasterName}"'s compatibility with smartclip transition.
 
           CURRENT TECH STACK:
           - Primary Ad Server: ${context.adServer}
@@ -292,54 +270,33 @@ export default function Pipeline() {
           Return a JSON object with exactly this structure:
           {
           "messages": [
-          "Analyzing compatibility for ${name}...",
+          "Analyzing compatibility for ${context.broadcasterName}...",
           "<detailed compatibility assessment - 2-3 sentences>",
           "<migration risk level and technical challenges>",
           "Compatibility Score: [0-100]/100"
           ]
           }`;
 
-          if (!enhancedPrompt.trim()) {
-            throw new Error("Stage 2 prompt is empty");
-          }
-          console.log(`[Pipeline] Stage 2 prompt length: ${enhancedPrompt.length}`);
+        result = await fetch('/api/pipeline/invoke-llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: enhancedPrompt, model }),
+          signal: abortController?.signal,
+        }).then(async res => {
+          if (!res.ok) throw new Error('LLM API failed');
+          return res.json();
+        });
 
-          result = await fetch('/api/pipeline/invoke-llm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: enhancedPrompt, model }),
-            signal: abortController.signal,
-          }).then(async res => {
-            if (!res.ok) {
-              let errorMsg = `HTTP ${res.status} ${res.statusText}`;
-              try {
-                const errorData = await res.json();
-                if (errorData.error) errorMsg = `${errorMsg}: ${errorData.error}`;
-              } catch (e) {
-                const text = await res.text();
-                if (text) errorMsg = `${errorMsg}: ${text.substring(0, 200)}`;
-              }
-              console.error(`[Pipeline] Stage 2 API error: ${errorMsg}`);
-              throw new Error(`Stage 2 API error: ${errorMsg}`);
-            }
-            return res.json();
-          });
-
-          // Extract Stage 2 data into context
-          if (result?.messages) {
-            const stage2Data = extractCompatibilityData(result.messages as string[]);
-            context.compatibilityScore = stage2Data.score;
-            context.migrationRisk = stage2Data.risk;
-            context.compatibilityNotes = stage2Data.notes;
-            console.log(`[Pipeline] Stage 2 complete - Context updated:`, {
-              score: context.compatibilityScore,
-              risk: context.migrationRisk,
-            });
-          }
+        if (result?.messages) {
+          const stage2Data = extractCompatibilityData(result.messages as string[]);
+          context.compatibilityScore = stage2Data.score;
+          context.migrationRisk = stage2Data.risk;
+          context.compatibilityNotes = stage2Data.notes;
         }
-        // Stage 3: Decision Makers (receives Stage 1-2 context)
-        else if (i === 3) {
-          const enhancedPrompt = `You are a contact intelligence agent. Identify real or realistic decision makers at "${name}" relevant to a programmatic advertising/adtech partnership.
+      }
+      // Stage 3: Decision Makers
+      else if (nextStage === 3) {
+        const enhancedPrompt = `You are a contact intelligence agent. Identify real or realistic decision makers at "${context.broadcasterName}" relevant to a programmatic advertising/adtech partnership.
 
 CONTEXT:
 - Current Ad Server: ${context.adServer}
@@ -351,53 +308,32 @@ Focus on contacts who would approve or influence a transition to new SSP partner
 Return a JSON object with exactly this structure:
 {
   "messages": [
-    "Identifying decision makers at ${name}...",
+    "Identifying decision makers at ${context.broadcasterName}...",
     "<2 contacts with name, title, on separate lines, format: Found: [Name], [Title] and Found: [Name], [Title]>",
     "Ranking by partnership relevance..."
   ]
 }
 Use realistic names and senior titles like Director/VP/Head of Digital Sales, Programmatic, Ad Tech, etc.`;
 
-          if (!enhancedPrompt.trim()) {
-            throw new Error("Stage 3 prompt is empty");
-          }
-          console.log(`[Pipeline] Stage 3 prompt length: ${enhancedPrompt.length}`);
+        result = await fetch('/api/pipeline/invoke-llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: enhancedPrompt, model }),
+          signal: abortController?.signal,
+        }).then(async res => {
+          if (!res.ok) throw new Error('LLM API failed');
+          return res.json();
+        });
 
-          result = await fetch('/api/pipeline/invoke-llm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: enhancedPrompt, model }),
-            signal: abortController.signal,
-          }).then(async res => {
-            if (!res.ok) {
-              let errorMsg = `HTTP ${res.status} ${res.statusText}`;
-              try {
-                const errorData = await res.json();
-                if (errorData.error) errorMsg = `${errorMsg}: ${errorData.error}`;
-              } catch (e) {
-                const text = await res.text();
-                if (text) errorMsg = `${errorMsg}: ${text.substring(0, 200)}`;
-              }
-              console.error(`[Pipeline] Stage 3 API error: ${errorMsg}`);
-              throw new Error(`Stage 3 API error: ${errorMsg}`);
-            }
-            return res.json();
-          });
-
-          // Extract Stage 3 data into context
-          if (result?.messages) {
-            const makers = extractDecisionMakers(result.messages as string[]);
-            context.decisionMakers = makers;
-            context.primaryContact = makers[0]?.name || "Unknown";
-            console.log(`[Pipeline] Stage 3 complete - Context updated:`, {
-              contacts: context.decisionMakers.length,
-              primary: context.primaryContact,
-            });
-          }
+        if (result?.messages) {
+          const makers = extractDecisionMakers(result.messages as string[]);
+          context.decisionMakers = makers;
+          context.primaryContact = makers[0]?.name || "Unknown";
         }
-        // Stage 4: Outreach Strategy (receives full context)
-        else if (i === 4) {
-          const enhancedPrompt = `You are an outreach preparation agent. Draft preparation notes for reaching out to the key contact at "${name}".
+      }
+      // Stage 4: Outreach Strategy
+      else if (nextStage === 4) {
+        const enhancedPrompt = `You are an outreach preparation agent. Draft preparation notes for reaching out to the key contact at "${context.broadcasterName}".
 
 FULL CONTEXT:
 - Broadcaster: ${context.broadcasterName}
@@ -413,118 +349,58 @@ Return a JSON object with exactly this structure:
 {
   "messages": [
     "Drafting outreach to ${context.primaryContact}...",
-    "<one line referencing ${name}'s specific streaming/digital growth angle>",
+    "<one line referencing ${context.broadcasterName}'s specific streaming/digital growth angle>",
     "Proposing ${context.migrationRisk === "low" ? "pilot" : "proof of concept"} on ${context.fundamentSSPs[0] || "SSP"} inventory."
   ]
 }`;
 
-          if (!enhancedPrompt.trim()) {
-            throw new Error("Stage 4 prompt is empty");
-          }
-          console.log(`[Pipeline] Stage 4 prompt length: ${enhancedPrompt.length}`);
+        result = await fetch('/api/pipeline/invoke-llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: enhancedPrompt, model }),
+          signal: abortController?.signal,
+        }).then(async res => {
+          if (!res.ok) throw new Error('LLM API failed');
+          return res.json();
+        });
 
-          result = await fetch('/api/pipeline/invoke-llm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: enhancedPrompt, model }),
-            signal: abortController.signal,
-          }).then(async res => {
-            if (!res.ok) {
-              let errorMsg = `HTTP ${res.status} ${res.statusText}`;
-              try {
-                const errorData = await res.json();
-                if (errorData.error) errorMsg = `${errorMsg}: ${errorData.error}`;
-              } catch (e) {
-                const text = await res.text();
-                if (text) errorMsg = `${errorMsg}: ${text.substring(0, 200)}`;
-              }
-              console.error(`[Pipeline] Stage 4 API error: ${errorMsg}`);
-              throw new Error(`Stage 4 API error: ${errorMsg}`);
-            }
-            return res.json();
-          });
-
-          // Extract Stage 4 data
-          if (result?.messages) {
-            context.outreachStrategy = result.messages.join(" ");
-            console.log(`[Pipeline] Stage 4 complete - Outreach drafted`);
-          }
+        if (result?.messages) {
+          context.outreachStrategy = result.messages.join(" ");
         }
-
-        if (abortRef.current) return;
-
-        setStages((prev) => {
-          const next = [...prev];
-          next[i] = {
-            messages: (result?.messages || []) as string[],
-            isCheckpoint: false,
-          };
-          return next;
-        });
-        setPipelineData((prev) => ({
-          ...prev,
-          [`stage${i}`]: (result?.messages || []) as string[],
-        }));
-
-        // Wait for messages to animate, then mark complete
-        await new Promise((res) =>
-          setTimeout(res, ((result?.messages || []).length * 1200) + 800)
-        );
-        if (abortRef.current) return;
-
-        setStageStatuses((prev) => {
-          const n = [...prev];
-          n[i] = "complete";
-          return n;
-        });
-        setActiveStage(i + 1 < 5 ? i + 1 : i);
-        await new Promise((res) => setTimeout(res, 400));
-      } catch (error) {
-        console.error(`Error in stage ${i}:`, error);
-        setStageStatuses((prev) => {
-          const n = [...prev];
-          n[i] = "complete"; // Mark as complete even on error to allow continuing
-          return n;
-        });
       }
+
+      // Update stages with results
+      setStages((prev) => {
+        const next = [...prev];
+        next[nextStage] = {
+          messages: (result?.messages || []) as string[],
+          isCheckpoint: false,
+        };
+        return next;
+      });
+
+      // Wait for messages to animate
+      await new Promise((res) =>
+        setTimeout(res, ((result?.messages || []).length * 1200) + 800)
+      );
+
+      // Mark stage as complete and PAUSE - Wait for next "Proceed" click
+      setStageStatuses((prev) => {
+        const n = [...prev];
+        n[nextStage] = "complete";
+        return n;
+      });
+
+      setIsProcessing(false);
+    } catch (error) {
+      console.error(`Error in stage ${nextStage}:`, error);
+      setStageStatuses((prev) => {
+        const n = [...prev];
+        n[nextStage] = "complete";
+        return n;
+      });
+      setIsProcessing(false);
     }
-
-    if (abortRef.current) return;
-
-    // Stage 5 — checkpoint (stage 4 in array) with full context review
-    console.log(`[Pipeline] Stage 5 - Final context:`, context);
-    setStageStatuses((prev) => {
-      const n = [...prev];
-      n[4] = "active";
-      return n;
-    });
-    setActiveStage(4);
-
-    // Generate checkpoint summary showing complete context
-    const checkpointMessages = [
-      "Pipeline Research Complete ✓",
-      `📊 Broadcaster: ${context.broadcasterName}`,
-      `🔧 Ad Stack: ${context.adServer} + ${context.fundamentSSPs.length} SSPs`,
-      `✅ Compatibility: ${context.compatibilityScore}/100 (${context.migrationRisk} risk)`,
-      `👥 Contacts: ${context.decisionMakers.length} decision makers identified`,
-      `🎯 Primary: ${context.primaryContact}`,
-    ];
-
-    setStages((prev) => {
-      const next = [...prev];
-      next[4] = {
-        messages: checkpointMessages,
-        isCheckpoint: true,
-      };
-      return next;
-    });
-
-    await new Promise((res) => setTimeout(res, 800));
-    setStageStatuses((prev) => {
-      const n = [...prev];
-      n[4] = "complete";
-      return n;
-    });
   };
 
   const handleRun = () => {
@@ -715,7 +591,7 @@ Return a JSON object with exactly this structure:
                       }
                     >
                       {/* Chat Header */}
-                      <div 
+                      <div
                         className="border-b border-white/10 px-4 py-3 flex-shrink-0"
                         style={{
                           background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)"
@@ -762,7 +638,21 @@ Return a JSON object with exactly this structure:
             </AnimatePresence>
             </div>
 
-            {/* Prev / Next navigation */}
+            {/* Proceed to Next Stage button (for pause-and-wait behavior) */}
+            {stageStatuses[activeStage] === "complete" && activeStage < 4 && (
+              <div className={running && (activeStage === 0 || activeStage === 1) ? "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-[#0a1628] via-[#0a1628] to-transparent border-t border-white/10 px-4 sm:px-6 py-6 flex justify-center" : "flex justify-center mt-12 px-4 sm:px-6 pb-8"}>
+                <Button
+                  onClick={handleProceedToNextStage}
+                  disabled={isProcessing}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-8 py-3 gap-2.5 rounded-full font-semibold text-base shadow-lg shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-purple-500/70"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  Proceed to {activeStage === 0 ? "Analysis" : activeStage === 1 ? "Decision Makers" : activeStage === 2 ? "Outreach" : "Checkpoint"}
+                </Button>
+              </div>
+            )}
+
+            {/* Prev / Next navigation (for manual stage jumping) */}
             <div className={running && (activeStage === 0 || activeStage === 1) ? "hidden" : "flex justify-between mt-8 px-4 sm:px-6"}>
               <button
                 onClick={() => setActiveStage((s) => Math.max(0, s - 1))}
