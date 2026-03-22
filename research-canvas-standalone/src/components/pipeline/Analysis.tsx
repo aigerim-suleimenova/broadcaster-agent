@@ -28,15 +28,9 @@ function HomeContent({ broadcasterData }: AnalysisProps) {
   });
 
   return (
-       <div className="flex flex-1 relative z-10" style={{ height: "calc(100% - 0px)" }}>
-      <div className="w-full h-full overflow-y-auto p-10 bg-white/5 backdrop-blur-sm">
-  <div className="flex-1 overflow-hidden">
-    <Dashboard broadcasterData={broadcasterData} />
-  </div>
-
-    </div>
+      <div className="flex flex-1 relative z-10" style={{ height: "calc(100% - 0px)" }}>
       <div
-    className="w-[500px] h-full flex-shrink-0 border-l border-white/10"
+     className="w-full h-full overflow-y-auto p-10 bg-white/5 backdrop-blur-sm"
     style={
       {
         "--copilot-kit-background-color": "#0a1628",
@@ -48,8 +42,7 @@ function HomeContent({ broadcasterData }: AnalysisProps) {
       } as any
     }
   >
-    <CopilotChat
-      className="h-full"
+    <CopilotSidebar
           instructions={prompt}
           AssistantMessage={
             CustomAssistantMessage}
@@ -59,7 +52,13 @@ function HomeContent({ broadcasterData }: AnalysisProps) {
       "Hello, I'm here to help you understand your data. How can I help?",
       placeholder: "Ask about sales, trends, or metrics...",
       }}
-    />
+        >
+                <div className="w-full h-full overflow-y-auto p-10 bg-white/5 backdrop-blur-sm">
+  <div className="flex-1 overflow-hidden">
+    <Dashboard broadcasterData={broadcasterData} />
+  </div>
+    </div>
+          </CopilotSidebar>
   </div>
     </div>
   );

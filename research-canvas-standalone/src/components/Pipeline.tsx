@@ -702,7 +702,7 @@ Return a JSON object with exactly this structure:
                       <ResearchCanvas />
                     </div>
                     <div
-                      className="w-[500px] h-full flex-shrink-0 border-l border-white/10"
+                      className="w-[500px] h-full flex-shrink-0 border-l border-white/10 flex flex-col"
                       style={
                         {
                           "--copilot-kit-background-color": "#0a1628",
@@ -714,12 +714,24 @@ Return a JSON object with exactly this structure:
                         } as any
                       }
                     >
+                      {/* Chat Header */}
+                      <div 
+                        className="border-b border-white/10 px-4 py-3 flex-shrink-0"
+                        style={{
+                          background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)"
+                        }}
+                      >
+                        <h3 className="text-sm font-semibold text-white">Research Assistant</h3>
+                        <p className="text-xs text-white/50 mt-1">Ask questions about broadcaster data</p>
+                      </div>
+                      {/* Chat Content */}
                       <CopilotChat
-                        className="h-full"
+                        className="h-full flex-1"
                         onSubmitMessage={async (message) => {
                           await new Promise((resolve) => setTimeout(resolve, 30));
                         }}
                         labels={{
+                          title: "Pipeline Assistant",
                           initial: "Hi! How can I assist you with the broadcaster research today?",
                         }}
                       />

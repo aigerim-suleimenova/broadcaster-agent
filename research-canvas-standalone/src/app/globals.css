@@ -169,10 +169,13 @@ body {
 
 .copilotKitResponseButton {
   background-color: transparent !important;
-  color: #a78bfa !important;
   border: 0px !important;
 }
 
+.copilotKitButton {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
+  border: none !important;
+}
 .copilotKitInput {
   background-color: #bcbcbc25 !important;
   border: 1px solid #ffffff80 !important;
@@ -201,10 +204,6 @@ body {
   background-color: transparent !important;
 }
 
-.copilotKitInput > .copilotKitInputControls > button:not([disabled]) {
-  color: #a78bfa !important;
-}
-
 .copilotKitInput > .copilotKitInputControls > button {
   color: var(--copilot-kit-secondary-color);
   background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
@@ -228,4 +227,8 @@ body {
 .copilotKitInput > .copilotKitInputControls > button:not([disabled]):hover {
   transform: scale(1.1) !important;
   box-shadow: 0 6px 24px rgba(236, 72, 153, 0.6) !important;
+}
+
+.copilotKitHeader {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
 }
