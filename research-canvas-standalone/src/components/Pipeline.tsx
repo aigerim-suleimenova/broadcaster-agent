@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Play, RotateCcw, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import PipelineStage from "@/components/pipeline/PipelineStage";
 import { ResearchCanvas } from "@/components/ResearchCanvas";
@@ -110,6 +111,8 @@ export default function Pipeline() {
   const [broadcasterName, setBroadcasterName] = useState("");
   const [running, setRunning] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingStageNumber, setPendingStageNumber] = useState(0);
   const [stageStatuses, setStageStatuses] = useState<
     Array<"pending" | "active" | "complete">
   >([]);
@@ -132,6 +135,12 @@ export default function Pipeline() {
   const pipelineContextRef = useRef<PipelineContext | null>(null);
 
   const handleTermClick = useCallback(() => {}, []);
+
+  // Show confirmation dialog before proceeding
+  const showProceedConfirm = () => {
+    setPendingStageNumber(activeStage + 1);
+    setShowConfirmDialog(true);
+  };
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -188,11 +197,11 @@ export default function Pipeline() {
       primaryContact: "",
     };
 
-    // Store context in ref for later use by handleProceedToNextStage
+    // Store context in ref so handleProceedToNextStage can access it
     pipelineContextRef.current = context;
 
-    // Stage 0 is interactive (ResearchCanvas) - complete it immediately
-    await new Promise((res) => setTimeout(res, 500));
+    // Stage 0 is interactive (ResearchCanvas) - skip LLM, move to Stage 1 after delay
+    await new Promise((res) => setTimeout(res, 1000));
     if (abortRef.current || abortController.signal.aborted) return;
 
     setStageStatuses((prev) => {
@@ -213,7 +222,16 @@ export default function Pipeline() {
 
     setIsProcessing(true);
 
-    const context = pipelineContextRef.current || ({} as PipelineContext);
+    // Retrieve context and ensure all properties have defaults
+    let context = pipelineContextRef.current || ({} as PipelineContext);
+    if (!context.fundamentSSPs) context.fundamentSSPs = [];
+    if (!context.decisionMakers) context.decisionMakers = [];
+    if (!context.compatibilityScore) context.compatibilityScore = 0;
+    if (!context.migrationRisk) context.migrationRisk = "medium";
+    if (!context.adServer) context.adServer = "Unknown";
+    if (!context.primaryContact) context.primaryContact = "Unknown";
+    if (!context.compatibilityNotes) context.compatibilityNotes = "";
+
     const abortController = abortControllerRef.current;
     let result: { messages?: string[] } | undefined;
 
@@ -224,7 +242,6 @@ export default function Pipeline() {
         n[nextStage] = "active";
         return n;
       });
-      setActiveStage(nextStage);
 
       // Stage 1: ads.txt analysis
       if (nextStage === 1) {
@@ -402,6 +419,7 @@ Return a JSON object with exactly this structure:
       setIsProcessing(false);
     }
   };
+
 
   const handleRun = () => {
     if (!broadcasterName.trim()) return;
@@ -640,9 +658,9 @@ Return a JSON object with exactly this structure:
 
             {/* Proceed to Next Stage button (for pause-and-wait behavior) */}
             {stageStatuses[activeStage] === "complete" && activeStage < 4 && (
-              <div className={running && (activeStage === 0 || activeStage === 1) ? "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-[#0a1628] via-[#0a1628] to-transparent border-t border-white/10 px-4 sm:px-6 py-6 flex justify-center" : "flex justify-center mt-12 px-4 sm:px-6 pb-8"}>
+              <div className={running && (activeStage === 0 || activeStage === 1) ? "mt-auto border-t border-white/10 px-4 sm:px-6 py-6 flex justify-center" : "flex justify-center mt-12 px-4 sm:px-6 pb-8"}>
                 <Button
-                  onClick={handleProceedToNextStage}
+                  onClick={showProceedConfirm}
                   disabled={isProcessing}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-8 py-3 gap-2.5 rounded-full font-semibold text-base shadow-lg shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-purple-500/70"
                 >
@@ -652,30 +670,38 @@ Return a JSON object with exactly this structure:
               </div>
             )}
 
-            {/* Prev / Next navigation (for manual stage jumping) */}
-            <div className={running && (activeStage === 0 || activeStage === 1) ? "hidden" : "flex justify-between mt-8 px-4 sm:px-6"}>
-              <button
-                onClick={() => setActiveStage((s) => Math.max(0, s - 1))}
-                disabled={activeStage === 0}
-                className="text-sm text-white/40 hover:text-white disabled:opacity-20 transition-colors px-4 py-2 rounded-full border border-white/10 hover:border-white/30"
-              >
-                ← Previous
-              </button>
-              <button
-                onClick={() =>
-                  setActiveStage((s) =>
-                    Math.min(stages.length - 1, s + 1)
-                  )
-                }
-                disabled={
-                  activeStage >= stages.length - 1 ||
-                  stageStatuses[activeStage + 1] === "pending"
-                }
-                className="text-sm text-white/40 hover:text-white disabled:opacity-20 transition-colors px-4 py-2 rounded-full border border-white/10 hover:border-white/30"
-              >
-                Next →
-              </button>
-            </div>
+            {/* Confirmation Dialog */}
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+              <DialogContent className="bg-gradient-to-br from-[#1a2a4a] to-[#0f1a2a] border border-white/10">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Confirm Stage Transition</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    Are you ready to proceed to the next stage? You can review the current stage results before moving forward.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-3 sm:gap-0">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowConfirmDialog(false)}
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      setShowConfirmDialog(false);
+                      // Set activeStage to pending stage and process it
+                      setActiveStage(pendingStageNumber);
+                      // Delayed call to ensure state updates
+                      setTimeout(() => handleProceedToNextStage(), 0);
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
+                  >
+                    Confirm & Proceed
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
