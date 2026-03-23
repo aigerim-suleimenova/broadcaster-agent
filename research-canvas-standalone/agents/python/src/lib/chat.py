@@ -110,25 +110,25 @@ Here are the resources that you have available:
     ]
 
     model = get_model(state)
+    model_name = model.__class__.__name__
 
     # ---- MODEL EXECUTION ----
-    # GROQ DISABLED DUE TO FUNCTION CALLING ISSUES
-    # ainvoke_kwargs = {}
-    # if model.__class__.__name__ == "ChatOpenAI":
-    #     ainvoke_kwargs["parallel_tool_calls"] = False
-    #
-    # response = await model.bind_tools(
-    #     [
-    #         Search,
-    #         WriteReport,
-    #         WriteResearchQuestion,
-    #         DeleteResources,
-    #     ],
-    #     **ainvoke_kwargs,
-    # ).ainvoke(messages, config=config)
-
-    # Simple invocation without tools for now
-    response = await model.ainvoke(messages, config=config)
+    # Only use tool calling for models that support it
+    if model_name == "ChatOpenAI":
+        # OpenAI supports proper function calling
+        response = await model.bind_tools(
+            [
+                Search,
+                WriteReport,
+                WriteResearchQuestion,
+                DeleteResources,
+            ],
+            parallel_tool_calls=False,
+        ).ainvoke(messages, config=config)
+    else:
+        # For other models like Groq, use simple text generation
+        # and extract content from the response
+        response = await model.ainvoke(messages, config=config)
 
     ai_message = cast(AIMessage, response)
 
@@ -139,7 +139,7 @@ Here are the resources that you have available:
                 ai_message.tool_calls = []
                 break
 
-    # ---- HANDLE TOOL CALLS ----
+    # ---- HANDLE TOOL CALLS (for OpenAI) ----
     if ai_message.tool_calls:
         tool_call = ai_message.tool_calls[0]
 
@@ -175,6 +175,18 @@ Here are the resources that you have available:
                     ],
                 },
             )
+
+    # ---- FOR GROQ AND OTHER MODELS: AUTO-POPULATE REPORT ----
+    # If the model generated a substantial response without tool calls,
+    # automatically update the report
+    if ai_message.content and len(ai_message.content) > 50 and not report:
+        return Command(
+            goto="chat_node",
+            update={
+                "report": ai_message.content,
+                "messages": [ai_message],
+            },
+        )
 
     # ---- ROUTING ----
     goto = "__end__"

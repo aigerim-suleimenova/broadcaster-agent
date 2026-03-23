@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -24,11 +24,16 @@ export function ResearchCanvas() {
   // Safely get append from useCopilotChat with optional chaining
   const chatContext = useCopilotChat();
   const append = chatContext?.append;
+  const messages = chatContext?.messages || [];
 
   const { state, setState } = useCoAgent<AgentState>({
     name: agent,
     initialState: {
       model,
+      research_question: "",
+      resources: [],
+      report: "",
+      logs: [],
     },
   });
 
@@ -39,18 +44,77 @@ export function ResearchCanvas() {
       analyze_compatibility: `Analyze smartclip compatibility with the technology stack currently used by ${state.research_question || "this broadcaster"}.`,
     };
 
-    if (actionMap[action] && append) {
-      append({ role: "user", content: actionMap[action] });
+    if (actionMap[action]) {
+      const prompt = actionMap[action];
+      console.log("📤 Sending to agent:", { 
+        action, 
+        prompt, 
+        research_question: state.research_question,
+        agent_name: agent,
+        append_available: !!append
+      });
+      
+      // Try to use chat append if available, otherwise trigger directly
+      if (append) {
+        append({ role: "user", content: prompt });
+      } else {
+        // Direct agent trigger when chat is not available
+        console.log("❌ No append available - agent action not triggered");
+      }
+    }
+  };
+
+  const generateReport = () => {
+    if (state.research_question) {
+      const prompt = `Generate a research report for ${state.research_question}. Include broadcaster name, ad server info, SSP partners, smartclip compatibility, and migration risk assessment.`;
+      if (append) {
+        append({ role: "user", content: prompt });
+      } else {
+        console.log("Generate report:", prompt);
+      }
+    }
+  };
+
+  const extractFromChat = () => {
+    // Get the latest assistant message
+    const lastAssistantMessage = messages
+      .filter((msg) => msg.role === "assistant")
+      .pop();
+
+    if (!lastAssistantMessage) return;
+
+    const content = lastAssistantMessage.content;
+
+    // Extract URLs that look like resources
+    const urlRegex = /(https?:\/\/[^\s\)\]]+)/g;
+    const urls = content.match(urlRegex) || [];
+
+    // Add new resources from chat
+    if (urls.length > 0) {
+      const newResources = urls.map((url) => ({
+        url,
+        title: new URL(url).hostname || url,
+        description: "Found in chat",
+      }));
+
+      setResources([...resources, ...newResources]);
+    }
+
+    // If there's substantial content, add it to the research draft
+    if (content.length > 100) {
+      const currentReport = state.report || "";
+      const separator = currentReport ? "\n\n---\n\n" : "";
+      setState({ ...state, report: currentReport + separator + content });
     }
   };
 
   useCoAgentStateRender({
     name: agent,
-    render: ({ state, nodeName, status }) => {
-      if (!state.logs || state.logs.length === 0) {
+    render: ({ state: latestState, nodeName, status }) => {
+      if (!latestState?.logs || latestState.logs.length === 0) {
         return null;
       }
-      return <Progress logs={state.logs} />;
+      return <Progress logs={latestState.logs} />;
     },
   });
 
@@ -132,6 +196,44 @@ export function ResearchCanvas() {
   const [editResource, setEditResource] = useState<Resource | null>(null);
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
   const [isEditResourceOpen, setIsEditResourceOpen] = useState(false);
+  const [lastKnownReport, setLastKnownReport] = useState("");
+
+  // Sync agent state with resources whenever report updates
+  useEffect(() => {
+    if (state.report && state.report !== lastKnownReport) {
+      // Extract URLs from the report
+      const urlRegex = /(https?:\/\/[^\s\)\]]+)/g;
+      const urls = state.report.match(urlRegex) || [];
+      
+      if (urls.length > 0) {
+        const newResources = urls
+          .filter(url => !resources.some(r => r.url === url))
+          .map((url) => ({
+            url,
+            title: new URL(url).hostname || url,
+            description: "From research report",
+          }));
+        
+        if (newResources.length > 0) {
+          setResources([...resources, ...newResources]);
+        }
+      }
+      
+      setLastKnownReport(state.report);
+    }
+  }, [state.report, lastKnownReport, resources]);
+
+  // Debug: log state changes
+  useEffect(() => {
+    const stateLog = {
+      research_question: state.research_question,
+      report_length: state.report?.length || 0,
+      report_preview: state.report ? state.report.substring(0, 100) + "..." : "[empty]",
+      resources: state.resources?.length || 0,
+      logs: state.logs?.length || 0,
+    };
+    console.log("🔍 CoAgent State Updated:", stateLog);
+  }, [state]);
 
   const handleCardClick = (resource: Resource) => {
     setEditResource({ ...resource }); // Ensure a new object is created
@@ -189,66 +291,6 @@ export function ResearchCanvas() {
             />
           </div>
 
-          {/* Show proactive empty state or quick actions */}
-          {resources.length === 0 && state.research_question && (
-            <div className="mb-4">
-              <ResearchCanvasEmptyState
-                broadcasterName={state.research_question}
-                hasResources={resources.length > 0}
-                onSuggestedAction={handleSuggestedAction}
-              />
-            </div>
-          )}
-
-          {resources.length === 0 && !state.research_question && (
-            <div className="space-y-3">
-              <p className="text-sm text-white/50">
-                💡 Suggested sources to start with:
-              </p>
-              <div className="flex space-x-2 overflow-x-auto pb-2">
-                <button
-                  onClick={() => {
-                    setNewResource({
-                      url: "ads.txt",
-                      title: "ads.txt",
-                      description: "Fetch and parse ads.txt to detect ad server and SSP partnerships",
-                    });
-                    setIsAddResourceOpen(true);
-                  }}
-                  className="flex-none px-4 py-2 bg-purple-500/20 border border-purple-500/40 hover:border-purple-500/60 rounded-lg text-sm text-white/70 hover:text-white transition-all"
-                >
-                  📄 ads.txt
-                </button>
-                <button
-                  onClick={() => {
-                    setNewResource({
-                      url: "",
-                      title: "Company Profile",
-                      description: "Find broadcaster profile and market information",
-                    });
-                    setIsAddResourceOpen(true);
-                  }}
-                  className="flex-none px-4 py-2 bg-purple-500/20 border border-purple-500/40 hover:border-purple-500/60 rounded-lg text-sm text-white/70 hover:text-white transition-all"
-                >
-                  🏢 Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setNewResource({
-                      url: "",
-                      title: "LinkedIn Company",
-                      description: "Identify decision makers and team members",
-                    });
-                    setIsAddResourceOpen(true);
-                  }}
-                  className="flex-none px-4 py-2 bg-purple-500/20 border border-purple-500/40 hover:border-purple-500/60 rounded-lg text-sm text-white/70 hover:text-white transition-all"
-                >
-                  👥 LinkedIn
-                </button>
-              </div>
-            </div>
-          )}
-
           {resources.length !== 0 && (
             <Resources
               resources={resources}
@@ -259,9 +301,19 @@ export function ResearchCanvas() {
         </div>
 
         <div className="flex flex-col h-full">
-          <h2 className="text-lg font-medium mb-3 text-white/90">
-            Research Draft
-          </h2>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-medium text-white/90">
+              Research Draft
+            </h2>
+            {messages.filter((msg) => msg.role === "assistant").length > 0 && (
+              <button
+                onClick={extractFromChat}
+                className="px-3 py-1 bg-blue-500/20 border border-blue-500/40 hover:border-blue-500/60 rounded text-xs text-blue-300 hover:text-blue-200 transition-all"
+              >
+                ↓ Extract from Chat
+              </button>
+            )}
+          </div>
           <Textarea
             data-test-id="research-draft"
             placeholder={`📺 Broadcaster: [Enter name]
