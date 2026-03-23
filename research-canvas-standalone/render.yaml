@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: broadcaster-agent-frontend
+    env: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://${RENDER_EXTERNAL_URL}
+    healthCheckPath: /
+    
+  - type: web
+    name: broadcaster-agent-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python agents/python/inference_server.py
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: AGENT_HOST
+        value: 0.0.0.0
+      - key: AGENT_PORT
+        value: 8000
+    healthCheckPath: /health
+    healthCheckTimeout: 10

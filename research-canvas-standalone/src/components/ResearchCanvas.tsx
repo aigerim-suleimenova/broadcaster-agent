@@ -46,14 +46,14 @@ export function ResearchCanvas() {
 
     if (actionMap[action]) {
       const prompt = actionMap[action];
-      console.log("📤 Sending to agent:", { 
-        action, 
-        prompt, 
+      console.log("📤 Sending to agent:", {
+        action,
+        prompt,
         research_question: state.research_question,
         agent_name: agent,
         append_available: !!append
       });
-      
+
       // Try to use chat append if available, otherwise trigger directly
       if (append) {
         append({ role: "user", content: prompt });
@@ -204,7 +204,7 @@ export function ResearchCanvas() {
       // Extract URLs from the report
       const urlRegex = /(https?:\/\/[^\s\)\]]+)/g;
       const urls = state.report.match(urlRegex) || [];
-      
+
       if (urls.length > 0) {
         const newResources = urls
           .filter(url => !resources.some(r => r.url === url))
@@ -213,12 +213,12 @@ export function ResearchCanvas() {
             title: new URL(url).hostname || url,
             description: "From research report",
           }));
-        
+
         if (newResources.length > 0) {
           setResources([...resources, ...newResources]);
         }
       }
-      
+
       setLastKnownReport(state.report);
     }
   }, [state.report, lastKnownReport, resources]);
