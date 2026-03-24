@@ -1,6 +1,7 @@
 """Chat Node"""
 
-from typing import List, Literal, cast
+from typing import List, Literal, cast, Optional
+import json
 
 from copilotkit.langgraph import copilotkit_customize_config
 from langchain.tools import tool
@@ -11,6 +12,7 @@ from langgraph.types import Command
 from src.lib.download import get_resource
 from src.lib.model import get_model
 from src.lib.state import AgentState
+from src.lib.metrics_parser import parse_broadcaster_metrics
 
 
 @tool
@@ -37,6 +39,12 @@ def DeleteResources(urls: str) -> str:
     return "ok"
 
 
+@tool
+def WriteBroadcasterMetrics(metrics_json: str) -> str:
+    """Write broadcaster metrics data for visualization."""
+    return "ok"
+
+
 async def chat_node(
     state: AgentState, config: RunnableConfig
 ) -> Command[Literal["search_node", "chat_node", "delete_node", "__end__"]]:
@@ -58,6 +66,11 @@ async def chat_node(
                 "tool": "WriteResearchQuestion",
                 "tool_argument": "research_question",
             },
+            {
+                "state_key": "broadcaster_metrics",
+                "tool": "WriteBroadcasterMetrics",
+                "tool_argument": "metrics_json",
+            },
         ],
     )
 
@@ -65,6 +78,7 @@ async def chat_node(
     state["resources"] = state.get("resources", [])
     research_question = state.get("research_question", "")
     report = state.get("report", "")
+    state.setdefault("broadcaster_metrics", None)
 
     # Load resource contents
     resources = []
@@ -122,6 +136,7 @@ Here are the resources that you have available:
                 WriteReport,
                 WriteResearchQuestion,
                 DeleteResources,
+                WriteBroadcasterMetrics,
             ],
             parallel_tool_calls=False,
         ).ainvoke(messages, config=config)
@@ -176,16 +191,50 @@ Here are the resources that you have available:
                 },
             )
 
-    # ---- FOR GROQ AND OTHER MODELS: AUTO-POPULATE REPORT ----
+        if tool_call["name"] == "WriteBroadcasterMetrics":
+            metrics_json_str = tool_call["args"].get("metrics_json", "{}")
+            try:
+                metrics = json.loads(metrics_json_str)
+            except (json.JSONDecodeError, TypeError):
+                metrics = {}
+
+            return Command(
+                goto="chat_node",
+                update={
+                    "broadcaster_metrics": metrics,
+                    "messages": [
+                        ai_message,
+                        ToolMessage(
+                            tool_call_id=tool_call["id"],
+                            content="Broadcaster metrics written.",
+                        ),
+                    ],
+                },
+            )
+
+    # ---- FOR GROQ AND OTHER MODELS: AUTO-POPULATE REPORT AND METRICS ----
     # If the model generated a substantial response without tool calls,
     # automatically update the report
     if ai_message.content and len(ai_message.content) > 50 and not report:
+        new_report = ai_message.content
+
+        # Parse broadcaster metrics from the new report
+        broadcaster_metrics = parse_broadcaster_metrics(
+            new_report, research_question)
+        metrics_json = json.dumps(
+            broadcaster_metrics) if broadcaster_metrics else None
+
+        update_data = {
+            "report": new_report,
+            "messages": [ai_message],
+        }
+
+        if metrics_json:
+            update_data["broadcaster_metrics"] = broadcaster_metrics
+
         return Command(
             goto="chat_node",
-            update={
-                "report": ai_message.content,
-                "messages": [ai_message],
-            },
+            update=update_data,
         )
 
     # ---- ROUTING ----

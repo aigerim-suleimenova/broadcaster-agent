@@ -9,29 +9,34 @@ import { motion, AnimatePresence } from "framer-motion";
 import PipelineStage from "@/components/pipeline/PipelineStage";
 import { ResearchCanvas } from "@/components/ResearchCanvas";
 import { Dashboard } from "@/components/Dashboard";
-import { CopilotChat } from "@copilotkit/react-ui";
+import { OutreachSendStage } from "@/components/OutreachSendStage";
+import { CopilotChat, CopilotSidebar } from "@copilotkit/react-ui";
 import { useCoAgent } from "@copilotkit/react-core";
 import { useModelSelectorContext } from "@/lib/model-selector-provider";
 import { AgentState } from "@/lib/types";
-import Analysis from "./pipeline/Analysis";
 
 // Define pipeline context type for structured data flow between stages
 interface PipelineContext {
   broadcasterName: string;
   domain: string;
-  // Stage 1: ads.txt Research
-  adServer: string;
-  fundamentSSPs: string[];
-  smartclipPresent: boolean;
-  // Stage 2: Compatibility Analysis
+  // Stage 1: Compatibility Analysis
   compatibilityScore: number;
   compatibilityNotes: string;
   migrationRisk: "low" | "medium" | "high";
-  // Stage 3: Decision Makers
+  adServer: string;
+  fundamentSSPs: string[];
+  smartclipPresent: boolean;
+  // Stage 2: Decision Makers
   decisionMakers: Array<{ name: string; title: string }>;
   primaryContact: string;
-  // Stage 4: Outreach Strategy
+  // Stage 3: Outreach Preparation
   outreachStrategy?: string;
+  // Stage 4: Email Outreach
+  emailDraft?: {
+    subject: string;
+    body: string;
+  };
+  emailsSent?: Array<{ to: string; subject: string; messageId: string }>;
 }
 
 // Helper function to convert broadcaster name to domain
@@ -44,23 +49,7 @@ const getBroadcasterDomain = (broadcasterName: string): string => {
   return `${cleaned}.com`;
 };
 
-// Helper function to extract smartclip-relevant data from Stage 1 research output
-const extractResearchData = (stage1Messages: string[]) => {
-  const fullText = stage1Messages.join("\n");
 
-  const adServerMatch = fullText.match(/(?:Detected|Found|using|ad server:)\s+([A-Za-z0-9\s&.-]+?)(?:\s+(?:ad server|adserver)|\\n|,|\.)/i);
-  const adServer = adServerMatch ? adServerMatch[1].trim() : "Unknown";
-
-  const sspMatch = fullText.match(/(?:Found SSPs:|SSP:)\s+([A-Za-z0-9\s&.,()-]+?)(?:\\n|,\s+smartclip|Total|\.|$)/i);
-  const ssp = sspMatch ? sspMatch[1].trim() : "Not specified";
-
-  const smartclipMatch = fullText.match(/smartclip (detected|not)/i);
-  const riskLevel = smartclipMatch && smartclipMatch[1] === "detected" ? "low" : "medium";
-
-  return { adServer, ssp, riskLevel };
-};
-
-// Extract compatibility score and notes from Stage 2
 const extractCompatibilityData = (stage2Messages: string[]) => {
   const fullText = stage2Messages.join("\n");
 
@@ -78,7 +67,7 @@ const extractCompatibilityData = (stage2Messages: string[]) => {
   return { score, risk, notes };
 };
 
-// Extract decision makers from Stage 3
+// Extract decision makers from Stage 2
 const extractDecisionMakers = (stage3Messages: string[]) => {
   const contactLines = stage3Messages[1] || "";
   const makers: Array<{ name: string; title: string }> = [];
@@ -121,13 +110,6 @@ export default function Pipeline() {
   >([]);
   const [pipelineData, setPipelineData] = useState<Record<string, string[]>>({});
   const [activeStage, setActiveStage] = useState(0);
-  const [broadcasterData, setBroadcasterData] = useState<{
-    broadcasterName: string;
-    domain: string;
-    adServer: string;
-    fundamentSSPs: string[];
-    smartclipPresent: boolean;
-  } | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
@@ -195,6 +177,8 @@ export default function Pipeline() {
       migrationRisk: "medium",
       decisionMakers: [],
       primaryContact: "",
+      emailDraft: undefined,
+      emailsSent: [],
     };
 
     // Store context in ref so handleProceedToNextStage can access it
@@ -243,38 +227,8 @@ export default function Pipeline() {
         return n;
       });
 
-      // Stage 1: ads.txt analysis
+      // Stage 1: Compatibility Analysis (formerly Stage 2)
       if (nextStage === 1) {
-        console.log(`[Pipeline] Stage 1: Analyzing ads.txt for ${context.domain}`);
-
-        const adsTxtResponse = await fetch('/api/pipeline/analyze-ads-txt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain: context.domain }),
-          signal: abortController?.signal,
-        }).then(async res => {
-          if (!res.ok) throw new Error('ads.txt API failed');
-          return res.json();
-        });
-
-        if (adsTxtResponse.messages) {
-          result = { messages: adsTxtResponse.messages };
-          const stage1Data = extractResearchData(result.messages as string[]);
-          context.adServer = stage1Data.adServer;
-          context.fundamentSSPs = stage1Data.ssp.split(",").map(s => s.trim()).filter(s => s);
-          context.smartclipPresent = stage1Data.riskLevel === "low";
-
-          setBroadcasterData({
-            broadcasterName: context.broadcasterName,
-            domain: context.domain,
-            adServer: context.adServer,
-            fundamentSSPs: context.fundamentSSPs,
-            smartclipPresent: context.smartclipPresent,
-          });
-        }
-      }
-      // Stage 2: Compatibility Analysis
-      else if (nextStage === 2) {
         const enhancedPrompt = `You are a compatibility analysis agent for programmatic advertising migrations.
           Analyze "${context.broadcasterName}"'s compatibility with smartclip transition.
 
@@ -311,8 +265,8 @@ export default function Pipeline() {
           context.compatibilityNotes = stage2Data.notes;
         }
       }
-      // Stage 3: Decision Makers
-      else if (nextStage === 3) {
+      // Stage 2: Decision Makers (formerly Stage 3)
+      else if (nextStage === 2) {
         const enhancedPrompt = `You are a contact intelligence agent. Identify real or realistic decision makers at "${context.broadcasterName}" relevant to a programmatic advertising/adtech partnership.
 
 CONTEXT:
@@ -348,8 +302,8 @@ Use realistic names and senior titles like Director/VP/Head of Digital Sales, Pr
           context.primaryContact = makers[0]?.name || "Unknown";
         }
       }
-      // Stage 4: Outreach Strategy
-      else if (nextStage === 4) {
+      // Stage 3: Outreach Strategy (formerly Stage 4)
+      else if (nextStage === 3) {
         const enhancedPrompt = `You are an outreach preparation agent. Draft preparation notes for reaching out to the key contact at "${context.broadcasterName}".
 
 FULL CONTEXT:
@@ -383,6 +337,63 @@ Return a JSON object with exactly this structure:
 
         if (result?.messages) {
           context.outreachStrategy = result.messages.join(" ");
+        }
+      }
+      // Stage 4: Email Outreach Draft
+      else if (nextStage === 4) {
+        const primaryContact = context.decisionMakers[0] || { name: "Unknown", title: "Decision Maker" };
+
+        const emailPrompt = `You are an expert outreach email writer for broadcast partnerships.
+
+BROADCASTER: ${context.broadcasterName}
+CONTACT: ${primaryContact.name}, ${primaryContact.title}
+PARTNERSHIP CONTEXT: Smartclip SSP Integration Opportunity
+COMPATIBILITY: ${context.compatibilityScore}/100 (${context.migrationRisk} risk)
+
+Draft a professional, personalized 3-4 paragraph outreach email that:
+1. Opens with a specific insight about ${context.broadcasterName}'s current setup
+2. Explains the smartclip integration value prop
+3. Briefly references their current ad server (${context.adServer})
+4. Proposes a brief call to discuss
+5. Includes a clear CTA
+
+Format the response as JSON:
+{
+  "messages": [
+    "Drafting email for ${primaryContact.name}...",
+    "(This is a draft - review and edit before sending)"
+  ],
+  "emailSubject": "[Your subject line here]",
+  "emailBody": "[Complete email body]"
+}`;
+
+        result = await fetch('/api/pipeline/invoke-llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: emailPrompt, model }),
+          signal: abortController?.signal,
+        }).then(async res => {
+          if (!res.ok) throw new Error('LLM API failed');
+          return res.json();
+        });
+
+        // Parse email from response messages
+        const messagesText = (result?.messages || []).join('\n');
+        const subjectMatch = messagesText.match(/Subject:\s*(.+)/i);
+        const bodyMatch = messagesText.match(/Body:\s*([\s\S]+?)(?=\n\n|$)/i);
+
+        if (subjectMatch && bodyMatch) {
+          context.emailDraft = {
+            subject: subjectMatch[1].trim(),
+            body: bodyMatch[1].trim(),
+          };
+        } else if (messagesText) {
+          // Fallback: use first part as subject, rest as body
+          const parts = messagesText.split('\n');
+          context.emailDraft = {
+            subject: parts[0].substring(0, 100),
+            body: messagesText,
+          };
         }
       }
 
@@ -479,8 +490,8 @@ Return a JSON object with exactly this structure:
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="pt-32 pb-12"
             >
+              <div className="pt-32 pb-12">
               <div className="text-center mb-12">
                 <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-purple-200">
                   Multi-Step Pipeline Agent
@@ -523,22 +534,23 @@ Return a JSON object with exactly this structure:
                           {i === 0 && "Researching broadcaster profile, ad server, and SSP relationships"}
                           {i === 1 && "Analyzing smartclip compatibility and market fit"}
                           {i === 2 && "Identifying key decision makers for partnership"}
-                          {i === 3 && "Preparing personalized outreach strategy"}
-                          {i === 4 && "Review and confirm findings"}
+                          {i === 3 && "Drafting personalized outreach email"}
+                          {i === 4 && "Final review and checkpoint"}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {running && (
-          <div ref={scrollRef} className={running && (activeStage === 0 || activeStage === 1) ? "fixed inset-0 top-[70px] flex flex-col" : "pt-12 pb-12 max-w-4xl mx-auto px-4 sm:px-6"}>
+          <div ref={scrollRef} className={running && activeStage === 0 ? "fixed inset-0 top-[70px] flex flex-col" : "pt-12 pb-12 max-w-4xl mx-auto px-4 sm:px-6"}>
             {/* Stage tabs */}
-            <div className={running && (activeStage === 0 || activeStage === 1) ? "flex items-center gap-2 mb-10 px-4 sm:px-6" : "flex items-center gap-2 mb-10"}>
+            <div className={running && activeStage === 0 ? "flex items-center gap-2 mb-10 px-4 sm:px-6" : "flex items-center gap-2 mb-10"}>
               {stages.map((_, i) => {
                 const isAccessible =
                   stageStatuses[i] === "complete" ||
@@ -550,37 +562,34 @@ Return a JSON object with exactly this structure:
                     disabled={!isAccessible}
                     className={`flex-1 h-1.5 rounded-full overflow-hidden bg-white/10 backdrop-blur-sm transition-all ${isAccessible ? "cursor-pointer" : "cursor-default"}`}
                   >
-                    <motion.div
-                      className={
-                        i === activeStage
-                          ? "h-full bg-gradient-to-r from-cyan-400 to-purple-400"
-                          : stageStatuses[i] === "complete"
-                          ? "h-full bg-gradient-to-r from-purple-500 to-pink-500"
-                          : stageStatuses[i] === "active"
-                          ? "h-full bg-gradient-to-r from-purple-400 to-pink-400"
-                          : "h-full bg-transparent"
-                      }
-                      initial={{ width: "0%" }}
-                      animate={{
-                        width:
-                          stageStatuses[i] === "complete"
-                            ? "100%"
-                            : stageStatuses[i] === "active"
-                            ? "60%"
-                            : "0%",
-                      }}
-                      transition={{ duration: 0.8, ease: "easeOut" }}
-                    />
+                    <div className={i === activeStage ? "h-full bg-gradient-to-r from-cyan-400 to-purple-400" : stageStatuses[i] === "complete" ? "h-full bg-gradient-to-r from-purple-500 to-pink-500" : stageStatuses[i] === "active" ? "h-full bg-gradient-to-r from-purple-400 to-pink-400" : "h-full bg-transparent"}>
+                      <motion.div
+                        initial={{ width: "0%" }}
+                        animate={{
+                          width:
+                            stageStatuses[i] === "complete"
+                              ? "100%"
+                              : stageStatuses[i] === "active"
+                              ? "60%"
+                              : "0%",
+                        }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        style={{
+                          width: stageStatuses[i] === "complete" ? "100%" : stageStatuses[i] === "active" ? "60%" : "0%",
+                          height: "100%"
+                        }}
+                      />
+                    </div>
                   </button>
                 );
               })}
             </div>
 
-            <div className={running && (activeStage === 0 || activeStage === 1) ? "text-sm text-white/50 font-medium px-4 sm:px-6 pb-4" : "text-sm text-white/50 mb-8 font-medium"}>
+            <div className={running && activeStage === 0 ? "text-sm text-white/50 font-medium px-4 sm:px-6 pb-4" : "text-sm text-white/50 mb-8 font-medium"}>
               Target: <span className="text-white/80">{broadcasterName}</span>
             </div>
 
-            <div className={running && (activeStage === 0 || activeStage === 1) ? "flex-1 overflow-hidden" : ""}>
+            <div className={running && activeStage === 0 ? "flex-1 overflow-hidden" : ""}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeStage}
@@ -588,15 +597,12 @@ Return a JSON object with exactly this structure:
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className={running && (activeStage === 0 || activeStage === 1) ? "h-full w-full flex" : ""}
+                style={running && activeStage === 0 ? { height: "100%", width: "100%", display: "flex" } : undefined}
               >
                 {activeStage === 0 && running ? (
                   <div className="flex flex-1 relative z-10" style={{ height: "calc(100% - 0px)" }}>
-                    <div className="flex-1 overflow-hidden">
-                      <ResearchCanvas />
-                    </div>
                     <div
-                      className="w-[500px] h-full flex-shrink-0 border-l border-white/10 flex flex-col"
+                       className="w-full h-full overflow-y-auto bg-white/5"
                       style={
                         {
                           "--copilot-kit-background-color": "#0a1628",
@@ -608,19 +614,7 @@ Return a JSON object with exactly this structure:
                         } as any
                       }
                     >
-                      {/* Chat Header */}
-                      <div
-                        className="border-b border-white/10 px-4 py-3 flex-shrink-0"
-                        style={{
-                          background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)"
-                        }}
-                      >
-                        <h3 className="text-sm font-semibold text-white">Research Assistant</h3>
-                        <p className="text-xs text-white/50 mt-1">Ask questions about broadcaster data</p>
-                      </div>
-                      {/* Chat Content */}
-                      <CopilotChat
-                        className="h-full flex-1"
+                      <CopilotSidebar
                         onSubmitMessage={async (message) => {
                           await new Promise((resolve) => setTimeout(resolve, 30));
                         }}
@@ -628,13 +622,43 @@ Return a JSON object with exactly this structure:
                           title: "Pipeline Assistant",
                           initial: "Hi! How can I assist you with the broadcaster research today?",
                         }}
-                      />
+                      >
+                        <div className="w-full h-full flex flex-col">
+                          <div className="flex-1 overflow-hidden">
+                            <ResearchCanvas />
+                          </div>
+                        </div>
+                      </CopilotSidebar>
                     </div>
                   </div>
-                  ) : activeStage === 1 ? (
-                  <div className="flex flex-1 relative z-10 w-full h-full" style={{ height: "calc(100% - 0px)" }}>
+                ) : activeStage === 4 ? (
+                  <div className="flex flex-1 relative z-10 w-full h-full">
                     <div className="flex-1 overflow-hidden w-full">
-                      <Analysis broadcasterData={broadcasterData} />
+                      {pipelineContextRef.current && pipelineContextRef.current.emailDraft ? (
+                        <OutreachSendStage
+                          status={stageStatuses[4] || "active"}
+                          contactName={pipelineContextRef.current.decisionMakers[0]?.name || "Contact"}
+                          contactEmail={pipelineContextRef.current.decisionMakers[0]?.title.includes("@") ? pipelineContextRef.current.decisionMakers[0].title : "contact@" + pipelineContextRef.current.domain}
+                          contactTitle={pipelineContextRef.current.decisionMakers[0]?.title || "Decision Maker"}
+                          broadcasterName={pipelineContextRef.current.broadcasterName}
+                          draftSubject={pipelineContextRef.current.emailDraft.subject}
+                          draftBody={pipelineContextRef.current.emailDraft.body}
+                          onEmailSent={(messageId, subject, to) => {
+                            if (!pipelineContextRef.current) return;
+                            if (!pipelineContextRef.current.emailsSent) {
+                              pipelineContextRef.current.emailsSent = [];
+                            }
+                            pipelineContextRef.current.emailsSent.push({ to, subject, messageId });
+                          }}
+                          onCancel={() => setActiveStage((s) => Math.min(stages.length - 1, s + 1))}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <p className="text-white/60">Loading email draft...</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -658,14 +682,14 @@ Return a JSON object with exactly this structure:
 
             {/* Proceed to Next Stage button (for pause-and-wait behavior) */}
             {stageStatuses[activeStage] === "complete" && activeStage < 4 && (
-              <div className={running && (activeStage === 0 || activeStage === 1) ? "mt-auto border-t border-white/10 px-4 sm:px-6 py-6 flex justify-center" : "flex justify-center mt-12 px-4 sm:px-6 pb-8"}>
+              <div className={running && activeStage === 0 ? "mt-auto border-t border-white/10 px-4 sm:px-6 py-6 flex justify-center" : "flex justify-center mt-12 px-4 sm:px-6 pb-8"}>
                 <Button
                   onClick={showProceedConfirm}
                   disabled={isProcessing}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-8 py-3 gap-2.5 rounded-full font-semibold text-base shadow-lg shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-purple-500/70"
                 >
                   <ArrowRight className="w-4 h-4" />
-                  Proceed to {activeStage === 0 ? "Analysis" : activeStage === 1 ? "Decision Makers" : activeStage === 2 ? "Outreach" : "Checkpoint"}
+                  Proceed to {activeStage === 0 ? "Compatibility Analysis" : activeStage === 1 ? "Decision Makers" : activeStage === 2 ? "Outreach Preparation" : "Email Outreach"}
                 </Button>
               </div>
             )}

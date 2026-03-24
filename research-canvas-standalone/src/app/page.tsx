@@ -7,6 +7,7 @@ import {
   useModelSelectorContext,
 } from "@/lib/model-selector-provider";
 import { ModelSelector } from "@/components/ModelSelector";
+import { GoogleOAuthProvider } from "@/lib/google-oauth-context";
 
 export default function ModelSelectorWrapper() {
   return (
@@ -29,8 +30,10 @@ function Home() {
       }`;
 
   return (
-    <CopilotKit runtimeUrl={runtimeUrl} showDevConsole={false} agent={agent}>
-      <Pipeline />
-    </CopilotKit>
+    <GoogleOAuthProvider>
+      <CopilotKit runtimeUrl={runtimeUrl} showDevConsole={false} agent={agent}>
+        <Pipeline />
+      </CopilotKit>
+    </GoogleOAuthProvider>
   );
 }

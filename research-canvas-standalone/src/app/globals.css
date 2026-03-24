@@ -10,6 +10,43 @@ body {
   font-weight: 500;
 }
 
+/* Force all text sizes to be 20px */
+* {
+  font-size: 20px !important;
+  line-height: 1.5;
+}
+
+/* Preserve some hierarchy with font-weight and color instead */
+.text-xs,
+.text-sm,
+.text-base,
+.text-lg,
+.text-xl,
+.text-2xl,
+.text-3xl,
+.text-4xl,
+.text-5xl,
+.text-6xl {
+  font-size: 20px !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+button,
+input,
+textarea,
+select {
+  font-size: 20px !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
