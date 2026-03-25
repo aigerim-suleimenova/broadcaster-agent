@@ -3,16 +3,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Play, RotateCcw, ArrowRight } from "lucide-react";
+import { Play, RotateCcw, ArrowRight, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import PipelineStage from "@/components/pipeline/PipelineStage";
 import { ResearchCanvas } from "@/components/ResearchCanvas";
 import { Dashboard } from "@/components/Dashboard";
 import { OutreachSendStage } from "@/components/OutreachSendStage";
-import { CopilotChat, CopilotSidebar } from "@copilotkit/react-ui";
+import { CopilotChat, CopilotPopup, CopilotSidebar } from "@copilotkit/react-ui";
 import { useCoAgent } from "@copilotkit/react-core";
-import { useModelSelectorContext } from "@/lib/model-selector-provider";
 import { AgentState } from "@/lib/types";
 
 // Define pipeline context type for structured data flow between stages
@@ -85,7 +84,8 @@ const extractDecisionMakers = (stage3Messages: string[]) => {
 };
 
 export default function Pipeline() {
-  const { model, agent } = useModelSelectorContext();
+  const model = "openai";
+  const agent = "research_agent";
   const { state, setState } = useCoAgent<AgentState>({
     name: agent,
     initialState: {
@@ -450,7 +450,8 @@ Format the response as JSON:
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#1e3a8a] to-[#581c87] text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#1e3a8a] to-[#581c87] text-white relative overflow-hidden flex flex-col">
+      {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
         <div
@@ -459,181 +460,209 @@ Format the response as JSON:
         />
       </div>
 
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+      {/* Header */}
+      <div className="border-b border-white/10 bg-black/30 backdrop-blur-xl sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg shadow-purple-500/50" />
-            <h1 className="text-lg font-semibold tracking-tight">
-              Pipeline Agent
-            </h1>
+            <div className="relative">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg shadow-purple-500/50" />
+              <div className="absolute inset-0 w-3 h-3 rounded-full bg-pink-500/20 animate-ping" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Pipeline Agent</h1>
+              <p className="text-xs text-white/50">Multi-step broadcaster discovery & outreach</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {running && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReset}
-                className="text-white/60 hover:text-white hover:bg-white/10 gap-2 rounded-full px-4"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset
-              </Button>
+              <>
+                <div className="text-right hidden sm:block">
+                  <p className="text-xs text-white/50">Processing</p>
+                  <p className="text-sm font-semibold text-white">{broadcasterName}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  className="text-white/60 hover:text-white hover:bg-white/10 gap-2 rounded-full px-3 sm:px-4 h-9"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span className="hidden sm:inline">Reset</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
       </div>
 
-      <div className={running && activeStage === 0 ? "w-full relative z-10" : "max-w-4xl mx-auto px-4 sm:px-6 relative z-10"}>
+      <div className="flex-1 relative z-10 flex flex-col">
         <AnimatePresence>
           {!running && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
+              className="flex-1 flex flex-col justify-center"
             >
-              <div className="pt-32 pb-12">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-purple-200">
-                  Multi-Step Pipeline Agent
-                </h2>
-                <p className="text-white/60 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-                  Enter a broadcaster name to run the full discovery, analysis, and
-                  outreach pipeline with human approval.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-16">
-                <Input
-                  placeholder="e.g. TF1 Group"
-                  value={broadcasterName}
-                  onChange={(e) => setBroadcasterName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleRun()}
-                  className="bg-white/5 border border-white/20 text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50 h-14 text-base rounded-full px-6 backdrop-blur-sm"
-                />
-                <Button
-                  onClick={handleRun}
-                  disabled={!broadcasterName.trim()}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white h-14 px-8 gap-2.5 shrink-0 rounded-full font-medium text-base shadow-lg shadow-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Play className="w-4 h-4" />
-                  Run Full Agent Pipeline
-                </Button>
-              </div>
-
-              {/* Stage pipeline visualization */}
-              <div className="max-w-4xl mx-auto">
-                <h3 className="text-lg font-semibold text-white mb-6">Pipeline Stages</h3>
-                <div className="space-y-4">
-                  {["Broadcaster Research", "Compatibility Analysis", "Decision Makers", "Outreach Preparation", "Checkpoint"].map((stage, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/[0.08] transition-colors">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-white/20">
-                        <span className="text-sm font-semibold text-white">{i}</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-white">{stage}</h4>
-                        <p className="text-xs text-white/60">
-                          {i === 0 && "Researching broadcaster profile, ad server, and SSP relationships"}
-                          {i === 1 && "Analyzing smartclip compatibility and market fit"}
-                          {i === 2 && "Identifying key decision makers for partnership"}
-                          {i === 3 && "Drafting personalized outreach email"}
-                          {i === 4 && "Final review and checkpoint"}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 sm:py-20">
+                {/* Hero Section */}
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-purple-200">
+                    Multi-Step Pipeline Agent
+                  </h2>
+                  <p className="text-white/60 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                    Enter a broadcaster name to launch an intelligent discovery, analysis, and outreach pipeline with human approval gates.
+                  </p>
                 </div>
-              </div>
+
+                {/* Input Section */}
+                <div className="max-w-2xl mx-auto mb-16">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      placeholder="e.g. BBC, Paramount, TF1 Group, Sky..."
+                      value={broadcasterName}
+                      onChange={(e) => setBroadcasterName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRun()}
+                      className="flex-1 bg-white/5 border border-white/20 text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50 h-12 text-base rounded-lg px-4 backdrop-blur-sm transition-all"
+                    />
+                    <Button
+                      onClick={handleRun}
+                      disabled={!broadcasterName.trim()}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white h-12 px-6 sm:px-8 gap-2 shrink-0 rounded-lg font-medium text-base shadow-lg shadow-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <Play className="w-4 h-4" />
+                      <span>Start Pipeline</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Pipeline Stages Grid */}
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-6 text-center">Discovery Pipeline</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-2 max-w-4xl mx-auto">
+                    {[
+                      { num: 0, name: "Research", desc: "Broadcaster profile & tech stack", icon: "🔍" },
+                      { num: 1, name: "Compatibility", desc: "Smartclip fit analysis", icon: "⚙️" },
+                      { num: 2, name: "Decision Makers", desc: "Key contact identification", icon: "👥" },
+                      { num: 3, name: "Outreach Plan", desc: "Personalized strategy", icon: "📋" },
+                      { num: 4, name: "Review", desc: "Final approval checkpoint", icon: "✅" },
+                    ].map((stage) => (
+                      <motion.div
+                        key={stage.num}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: stage.num * 0.1 }}
+                        className="group"
+                      >
+                        <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-lg p-4 sm:p-3 h-full hover:border-purple-500/30 hover:bg-gradient-to-br hover:from-purple-500/10 hover:to-purple-500/5 transition-all duration-300">
+                          <div className="text-2xl mb-2">{stage.icon}</div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-r from-purple-500/40 to-pink-500/40 border border-white/20">
+                              <span className="text-xs font-bold text-white">{stage.num}</span>
+                            </div>
+                            <h4 className="font-semibold text-white text-sm">{stage.name}</h4>
+                          </div>
+                          <p className="text-xs text-white/50 line-clamp-2">{stage.desc}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {running && (
-          <div ref={scrollRef} className={running && activeStage === 0 ? "fixed inset-0 top-[70px] flex flex-col" : "pt-12 pb-12 max-w-4xl mx-auto px-4 sm:px-6"}>
-            {/* Stage tabs */}
-            <div className={running && activeStage === 0 ? "flex items-center gap-2 mb-10 px-4 sm:px-6" : "flex items-center gap-2 mb-10"}>
-              {stages.map((_, i) => {
-                const isAccessible =
-                  stageStatuses[i] === "complete" ||
-                  stageStatuses[i] === "active";
-                return (
-                  <button
-                    key={i}
-                    onClick={() => isAccessible && setActiveStage(i)}
-                    disabled={!isAccessible}
-                    className={`flex-1 h-1.5 rounded-full overflow-hidden bg-white/10 backdrop-blur-sm transition-all ${isAccessible ? "cursor-pointer" : "cursor-default"}`}
-                  >
-                    <div className={i === activeStage ? "h-full bg-gradient-to-r from-cyan-400 to-purple-400" : stageStatuses[i] === "complete" ? "h-full bg-gradient-to-r from-purple-500 to-pink-500" : stageStatuses[i] === "active" ? "h-full bg-gradient-to-r from-purple-400 to-pink-400" : "h-full bg-transparent"}>
-                      <motion.div
-                        initial={{ width: "0%" }}
-                        animate={{
-                          width:
-                            stageStatuses[i] === "complete"
-                              ? "100%"
-                              : stageStatuses[i] === "active"
-                              ? "60%"
-                              : "0%",
-                        }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        style={{
-                          width: stageStatuses[i] === "complete" ? "100%" : stageStatuses[i] === "active" ? "60%" : "0%",
-                          height: "100%"
-                        }}
+          <div className={`flex-1 flex flex-col overflow-hidden ${activeStage === 0 ? "fixed inset-0 top-[70px]" : ""}`}>
+            {/* Stage Progress Bar */}
+            <div className="border-b border-white/10 bg-black/30 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-4">
+              <div className="max-w-6xl mx-auto space-y-3">
+                {/* Progress Indicators */}
+                <div className="flex items-center gap-2">
+                  {stages.map((_, i) => {
+                    const isAccessible = stageStatuses[i] === "complete" || stageStatuses[i] === "active";
+                    const isActive = i === activeStage;
+                    const isComplete = stageStatuses[i] === "complete";
+
+                    return (
+                      <motion.button
+                        key={i}
+                        onClick={() => isAccessible && setActiveStage(i)}
+                        disabled={!isAccessible}
+                        className={`h-2 rounded-full transition-all ${
+                          isActive
+                            ? "flex-1 bg-gradient-to-r from-cyan-400 to-purple-500"
+                            : isComplete
+                            ? "flex-1 bg-gradient-to-r from-emerald-400 to-green-500"
+                            : "flex-1 bg-white/10"
+                        } ${isAccessible ? "cursor-pointer" : "cursor-default"}`}
+                        whileHover={isAccessible ? { scale: 1.02 } : {}}
                       />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
 
-            <div className={running && activeStage === 0 ? "text-sm text-white/50 font-medium px-4 sm:px-6 pb-4" : "text-sm text-white/50 mb-8 font-medium"}>
-              Target: <span className="text-white/80">{broadcasterName}</span>
-            </div>
-
-            <div className={running && activeStage === 0 ? "flex-1 overflow-hidden" : ""}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeStage}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                style={running && activeStage === 0 ? { height: "100%", width: "100%", display: "flex" } : undefined}
-              >
-                {activeStage === 0 && running ? (
-                  <div className="flex flex-1 relative z-10" style={{ height: "calc(100% - 0px)" }}>
-                    <div
-                       className="w-full h-full overflow-y-auto bg-white/5"
-                      style={
-                        {
-                          "--copilot-kit-background-color": "#0a1628",
-                          "--copilot-kit-secondary-color": "#a78bfa",
-                          "--copilot-kit-separator-color": "#4c1d95",
-                          "--copilot-kit-primary-color": "#FFFFFF",
-                          "--copilot-kit-contrast-color": "#FFFFFF",
-                          "--copilot-kit-secondary-contrast-color": "#a78bfa",
-                        } as any
-                      }
-                    >
-                      <CopilotSidebar
-                        onSubmitMessage={async (message) => {
-                          await new Promise((resolve) => setTimeout(resolve, 30));
-                        }}
-                        labels={{
-                          title: "Pipeline Assistant",
-                          initial: "Hi! How can I assist you with the broadcaster research today?",
-                        }}
-                      >
-                        <div className="w-full h-full flex flex-col">
-                          <div className="flex-1 overflow-hidden">
-                            <ResearchCanvas />
-                          </div>
-                        </div>
-                      </CopilotSidebar>
-                    </div>
+                {/* Stage Info */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-white/50 font-medium">Stage {activeStage + 1} of {stages.length}</p>
+                    <p className="text-sm font-semibold text-white">
+                      {["Research", "Compatibility", "Decision Makers", "Outreach Plan", "Review"][activeStage]}
+                    </p>
                   </div>
-                ) : activeStage === 4 ? (
-                  <div className="flex flex-1 relative z-10 w-full h-full">
-                    <div className="flex-1 overflow-hidden w-full">
+                  <div className="text-xs text-white/50">
+                    {["Researching broadcaster...", "Analyzing compatibility...", "Finding contacts...", "Preparing outreach...", "Ready for review"][activeStage]}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div ref={scrollRef} className="flex-1 overflow-hidden flex flex-col">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeStage}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex-1 overflow-y-auto"
+                >
+                  {activeStage === 0 && running ? (
+                    <div className="w-full h-full flex flex-col" style={{ height: "calc(100% - 0px)" }}>
+                      <div
+                        className="flex-1 overflow-y-auto bg-white/5"
+                        style={
+                          {
+                            "--copilot-kit-background-color": "#0a1628",
+                            "--copilot-kit-secondary-color": "#a78bfa",
+                            "--copilot-kit-separator-color": "#4c1d95",
+                            "--copilot-kit-primary-color": "#FFFFFF",
+                            "--copilot-kit-contrast-color": "#FFFFFF",
+                            "--copilot-kit-secondary-contrast-color": "#a78bfa",
+                          } as any
+                        }
+                      >
+                        <CopilotPopup
+                          onSubmitMessage={async (message) => {
+                            await new Promise((resolve) => setTimeout(resolve, 30));
+                          }}
+                          labels={{
+                            title: "Pipeline Assistant",
+                            initial: "Hi! How can I assist you with the broadcaster research today?",
+                          }}
+                        >
+                          <div className="w-full h-full flex flex-col">
+                            <div className="flex-1 overflow-hidden">
+                              <ResearchCanvas />
+                            </div>
+                          </div>
+                        </CopilotPopup>
+                      </div>
+                    </div>
+                  ) : activeStage === 4 ? (
+                    <div className="w-full h-full flex flex-col">
                       {pipelineContextRef.current && pipelineContextRef.current.emailDraft ? (
                         <OutreachSendStage
                           status={stageStatuses[4] || "active"}
@@ -655,80 +684,116 @@ Format the response as JSON:
                       ) : (
                         <div className="flex items-center justify-center h-full">
                           <div className="text-center">
+                            <div className="animate-spin mb-3 inline-block">
+                              <Clock className="w-8 h-8 text-purple-400" />
+                            </div>
                             <p className="text-white/60">Loading email draft...</p>
                           </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                ) : (
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-                    <PipelineStage
-                      stageIndex={activeStage}
-                      status={stageStatuses[activeStage]}
-                      messages={stages[activeStage]?.messages || []}
-                      messageBaseDelay={200}
-                      isCheckpoint={stages[activeStage]?.isCheckpoint}
-                      broadcasterName={broadcasterName}
-                      pipelineData={pipelineData}
-                      onTermClick={handleTermClick}
-                      onNextStage={() => setActiveStage((s) => Math.min(stages.length - 1, s + 1))}
-                    />
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                  ) : (
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8">
+                      <PipelineStage
+                        stageIndex={activeStage}
+                        status={stageStatuses[activeStage]}
+                        messages={stages[activeStage]?.messages || []}
+                        messageBaseDelay={200}
+                        isCheckpoint={stages[activeStage]?.isCheckpoint}
+                        broadcasterName={broadcasterName}
+                        pipelineData={pipelineData}
+                        onTermClick={handleTermClick}
+                        onNextStage={() => setActiveStage((s) => Math.min(stages.length - 1, s + 1))}
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
 
-            {/* Proceed to Next Stage button (for pause-and-wait behavior) */}
+            {/* Action Bar */}
             {stageStatuses[activeStage] === "complete" && activeStage < 4 && (
-              <div className={running && activeStage === 0 ? "mt-auto border-t border-white/10 px-4 sm:px-6 py-6 flex justify-center" : "flex justify-center mt-12 px-4 sm:px-6 pb-8"}>
-                <Button
-                  onClick={showProceedConfirm}
-                  disabled={isProcessing}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-8 py-3 gap-2.5 rounded-full font-semibold text-base shadow-lg shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-purple-500/70"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  Proceed to {activeStage === 0 ? "Compatibility Analysis" : activeStage === 1 ? "Decision Makers" : activeStage === 2 ? "Outreach Preparation" : "Email Outreach"}
-                </Button>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="border-t border-white/10 bg-black/30 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-4"
+              >
+                <div className="max-w-5xl mx-auto flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-white/70 font-medium">
+                      Stage complete. Ready to continue?
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleReset}
+                      variant="ghost"
+                      className="text-white/60 hover:text-white hover:bg-white/10 border border-white/20 rounded-lg px-4"
+                    >
+                      Exit Pipeline
+                    </Button>
+                    <Button
+                      onClick={showProceedConfirm}
+                      disabled={isProcessing}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-6 gap-2 rounded-lg font-semibold shadow-lg shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                            className="inline-block"
+                          >
+                            <Clock className="w-4 h-4" />
+                          </motion.div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="w-4 h-4" />
+                          Next Stage
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
             )}
-
-            {/* Confirmation Dialog */}
-            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-              <DialogContent className="bg-gradient-to-br from-[#1a2a4a] to-[#0f1a2a] border border-white/10">
-                <DialogHeader>
-                  <DialogTitle className="text-white">Confirm Stage Transition</DialogTitle>
-                  <DialogDescription className="text-white/60">
-                    Are you ready to proceed to the next stage? You can review the current stage results before moving forward.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="gap-3 sm:gap-0">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowConfirmDialog(false)}
-                    className="border-white/20 text-white hover:bg-white/10"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      setShowConfirmDialog(false);
-                      // Set activeStage to pending stage and process it
-                      setActiveStage(pendingStageNumber);
-                      // Delayed call to ensure state updates
-                      setTimeout(() => handleProceedToNextStage(), 0);
-                    }}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
-                  >
-                    Confirm & Proceed
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </div>
         )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="bg-gradient-to-br from-[#1a2a4a] to-[#0f1a2a] border border-white/20 rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white text-lg">Ready to Continue?</DialogTitle>
+            <DialogDescription className="text-white/60 text-sm">
+              You've completed the {["Broadcaster Research", "Compatibility Analysis", "Decision Makers", "Outreach Planning"][pendingStageNumber - 1]} stage. Review the findings above before proceeding to the next step.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-3 sm:gap-0 flex-row justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              className="border-white/20 text-white hover:bg-white/10 rounded-lg"
+            >
+              Review More
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirmDialog(false);
+                setActiveStage(pendingStageNumber);
+                setTimeout(() => handleProceedToNextStage(), 0);
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg"
+            >
+              <ArrowRight className="w-4 h-4 mr-2" />
+              Proceed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

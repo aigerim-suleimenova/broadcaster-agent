@@ -46,6 +46,17 @@ interface BroadcasterAnalysisProps {
 }
 
 export function BroadcasterAnalysis({ data, status = "complete" }: BroadcasterAnalysisProps) {
+  // Guard against undefined or incomplete data
+  if (!data || !data.networkSnapshot || !data.strategicContext || !data.coreMetrics || !data.regionalBreakdown) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-900 rounded-lg">
+        <div className="text-center">
+          <p className="text-gray-500 dark:text-gray-400">No broadcaster data available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 w-full">
       {/* Header */}

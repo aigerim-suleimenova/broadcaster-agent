@@ -220,252 +220,195 @@ export default function PipelineStage({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Stage Header - Fixed */}
-      <div className="flex-shrink-0 pb-4 border-b border-white/10">
+    <div className="h-full flex flex-col overflow-hidden space-y-4">
+      {/* Stage Header */}
+      <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
-            {getStatusIcon()}
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-semibold text-white truncate">
-                {STAGE_NAMES[stageIndex]}
-              </h3>
-              <p className="text-xs text-white/50 line-clamp-2">
-                {STAGE_DESCRIPTIONS[stageIndex]}
-              </p>
+          <div className="flex items-start gap-3 flex-1">
+            <div className="flex-shrink-0 pt-1">{getStatusIcon()}</div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-bold text-white">{STAGE_NAMES[stageIndex]}</h3>
+              <p className="text-sm text-white/60 mt-1">{STAGE_DESCRIPTIONS[stageIndex]}</p>
             </div>
           </div>
-          <span className="text-xs font-medium text-white/40 bg-white/5 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
-            {getStatusText()}
-          </span>
+          <div className="flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-white/20 text-white backdrop-blur-sm"
+            >
+              {getStatusText()}
+            </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* Messages Container - Scrollable */}
-      <div className="flex-1 overflow-y-auto mt-4 space-y-3 px-1">
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto space-y-3 pr-2">
         {displayedMessages.length === 0 && status === "active" && (
-          <div className="flex items-center justify-center h-32">
-            <div className="flex flex-col items-center gap-2">
-              <div className="animate-pulse text-white/40">
-                <div className="w-6 h-6 rounded-full border-2 border-white/20 border-t-cyan-400 animate-spin" />
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-4">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="relative w-12 h-12"
+              >
+                <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 border-r-purple-400" />
+              </motion.div>
+              <div className="text-center">
+                <p className="text-white font-medium">Processing Stage {stageIndex + 1}</p>
+                <p className="text-white/50 text-sm mt-1">
+                  {["Researching broadcaster profile...", "Analyzing compatibility...", "Finding key contacts...", "Planning outreach strategy..."][stageIndex] || "Processing..."}
+                </p>
               </div>
-              <p className="text-xs text-white/40">Processing...</p>
             </div>
           </div>
         )}
 
-        {/* Stage 1: Compatibility Analysis - Enhanced View */}
-        {stageIndex === 1 && displayedMessages.length > 0 && (
-          <div className="space-y-3">
-            {(() => {
-              const score = extractCompatibilityScore(displayedMessages);
-              const riskLevel = extractRiskLevel(displayedMessages);
-              const scoreColor = score >= 80 ? "from-emerald-400 to-green-400" : score >= 60 ? "from-cyan-400 to-blue-400" : "from-amber-400 to-orange-400";
-              const riskColor = riskLevel === "low" ? "text-emerald-400" : riskLevel === "high" ? "text-red-400" : "text-amber-400";
-
-              return (
-                <>
-                  <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-lg p-4 space-y-3">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <TrendingUp className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm font-semibold text-white">Compatibility Score</span>
-                      </div>
-                      <div className="flex items-end gap-4">
-                        <div className="flex-1">
-                          <div className="mb-2 flex items-baseline gap-2">
-                            <span className={`text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${scoreColor}`}>{score}</span>
-                            <span className="text-xs text-white/60">/100</span>
-                          </div>
-                          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                            <div style={{ width: `${score}%` }} className={`h-full bg-gradient-to-r ${scoreColor}`} />
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
+        {stageIndex === 1 && displayedMessages.length > 0 && (() => {
+          const score = extractCompatibilityScore(displayedMessages);
+          const riskLevel = extractRiskLevel(displayedMessages);
+          const scoreColor = score >= 80 ? "from-emerald-400 to-green-400" : score >= 60 ? "from-cyan-400 to-blue-400" : "from-amber-400 to-orange-400";
+          const riskColor = riskLevel === "low" ? "text-emerald-400" : riskLevel === "high" ? "text-red-400" : "text-amber-400";
+          return (
+            <div key="stage1" className="space-y-3">
+              <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm font-semibold text-white">Compatibility Score</span>
+                </div>
+                <div className="flex-1">
+                  <div className="mb-2 flex items-baseline gap-2">
+                    <span className={`text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${scoreColor}`}>{score}</span>
+                    <span className="text-xs text-white/60">/100</span>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${riskLevel === "low" ? "bg-emerald-400" : riskLevel === "high" ? "bg-red-400" : "bg-amber-400"}`} />
-                        <span className="text-xs text-white/60">Risk Level:</span>
-                        <span className={`text-xs font-semibold ${riskColor} capitalize`}>{riskLevel}</span>
-                      </div>
-                    </motion.div>
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div style={{ width: `${score}%` }} className={`h-full bg-gradient-to-r ${scoreColor}`} />
                   </div>
-                </>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Stage 2: Decision Makers - Enhanced View */}
-        {stageIndex === 2 && displayedMessages.length > 0 && (
-          <div className="space-y-3">
-            {(() => {
-              const makers = extractDecisionMakers(displayedMessages);
-              return (
-                <>
-                  <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-lg p-4">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Users className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm font-semibold text-white">Decision Makers Identified</span>
-                        <span className="ml-auto text-xs bg-cyan-500/20 border border-cyan-500/30 rounded-full px-2 py-0.5 text-cyan-300">{makers.length || displayedMessages.length}</span>
-                      </div>
-                    </motion.div>
-                  </div>
-                  {makers.map((maker, idx) => (
-                    <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-3 hover:border-cyan-500/30 transition-colors">
-                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + idx * 0.1 }}>
-                        <div className="flex items-start gap-2">
-                          <Briefcase className="w-3.5 h-3.5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-white text-xs">{maker.name}</div>
-                            <div className="text-xs text-white/60">{maker.title}</div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  ))}
-                </>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Stage 3: Outreach Preparation - Enhanced View */}
-        {stageIndex === 3 && displayedMessages.length > 0 && (
-          <div className="space-y-3">
-            {(() => {
-              const strategy = extractOutreachStrategy(displayedMessages);
-              return (
-                <>
-                  <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-lg p-4">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Mail className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm font-semibold text-white">Outreach Strategy</span>
-                      </div>
-                    </motion.div>
-                  </div>
-                  {strategy.proposition && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                        <div className="flex items-start gap-2">
-                          <Award className="w-3.5 h-3.5 text-emerald-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-white mb-1">Value Proposition</div>
-                            <div className="text-xs text-white/70">{strategy.proposition}</div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
-                  {strategy.approach && (
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                        <div className="flex items-start gap-2">
-                          <Lightbulb className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-white mb-1">Approach</div>
-                            <div className="text-xs text-white/70">{strategy.approach}</div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
-                  {strategy.timeline && (
-                    <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-                        <div className="flex items-start gap-2">
-                          <Clock className="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-white mb-1">Timeline</div>
-                            <div className="text-xs text-white/70">{strategy.timeline}</div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Generic message display for other stages */}
-        {![1, 2, 3].includes(stageIndex) && displayedMessages.map((message, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2, delay: 0.05 }}
-          >
-            <div className="text-white/75 text-xs leading-relaxed flex gap-2 group">
-              <span className="text-white/30 font-mono flex-shrink-0 select-none pt-1">
-                •
-              </span>
-              <span className="break-words flex-1 text-white/70 group-hover:text-white/80 transition-colors">
-                {message}
-              </span>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${riskLevel === "low" ? "bg-emerald-400" : riskLevel === "high" ? "bg-red-400" : "bg-amber-400"}`} />
+                  <span className="text-xs text-white/60">Risk Level:</span>
+                  <span className={`text-xs font-semibold ${riskColor} capitalize`}>{riskLevel}</span>
+                </div>
+              </div>
             </div>
-          </motion.div>
-        ))}
+          );
+        })()}
 
-        {/* Show remaining messages for enhanced stages */}
-        {[1, 2, 3].includes(stageIndex) && displayedMessages.map((message, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-          >
-            <div className="text-white/75 text-xs leading-relaxed flex gap-2 group">
-              <span className="text-white/30 font-mono flex-shrink-0 select-none pt-1">
-                •
-              </span>
-              <span className="break-words flex-1 text-white/70 group-hover:text-white/80 transition-colors text-xs">
-                {message}
-              </span>
+        {stageIndex === 2 && displayedMessages.length > 0 && (() => {
+          const makers = extractDecisionMakers(displayedMessages);
+          return (
+            <div key="stage2" className="space-y-3">
+              <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm font-semibold text-white">Decision Makers</span>
+                  <span className="ml-auto text-xs bg-cyan-500/20 border border-cyan-500/30 rounded-full px-2 py-0.5 text-cyan-300">{makers.length}</span>
+                </div>
+              </div>
+              {makers.map((maker, idx) => (
+                <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-3 hover:border-cyan-500/30 transition-colors">
+                  <div className="flex items-start gap-2">
+                    <Briefcase className="w-3.5 h-3.5 text-cyan-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-white text-xs">{maker.name}</div>
+                      <div className="text-xs text-white/60">{maker.title}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </motion.div>
-        ))}
+          );
+        })()}
+
+        {stageIndex === 3 && displayedMessages.length > 0 && (() => {
+          const strategy = extractOutreachStrategy(displayedMessages);
+          return (
+            <div key="stage3" className="space-y-3">
+              <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Mail className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm font-semibold text-white">Outreach Strategy</span>
+                </div>
+              </div>
+              {strategy.proposition && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Award className="w-3.5 h-3.5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-white mb-1">Value Proposition</div>
+                      <div className="text-xs text-white/70">{strategy.proposition}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {strategy.approach && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-white mb-1">Approach</div>
+                      <div className="text-xs text-white/70">{strategy.approach}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {strategy.timeline && (
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-white mb-1">Timeline</div>
+                      <div className="text-xs text-white/70">{strategy.timeline}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {![1, 2, 3].includes(stageIndex) && displayedMessages.length > 0 && (
+          <div className="space-y-3">
+            {displayedMessages.map((message, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                className="group"
+              >
+                <div className="bg-white/[0.03] border border-white/10 rounded-lg p-3 hover:border-white/20 hover:bg-white/[0.06] transition-all duration-300">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 pt-0.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 text-sm leading-relaxed break-words">{message}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {displayedMessages.length > 0 && status === "complete" && (
-          <div className="pt-3 mt-3 border-t border-white/10">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                <span className="text-xs text-white/40">Complete</span>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </div>
-
-      {/* Action Buttons - Fixed at bottom if needed */}
-      {stageIndex === 0 && onNextStage && displayedMessages.length > 0 && status === "complete" && (
-        <div className="flex-shrink-0 mt-4 pt-3 border-t border-white/10">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4 }}
+            className="pt-4 mt-4 border-t border-white/10 flex items-center gap-2 px-2"
           >
-            <Button
-              onClick={onNextStage}
-              className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white gap-2 rounded-full py-2 font-medium text-xs shadow-lg shadow-purple-500/30"
-            >
-              <span>Next Stage</span>
-              <ArrowRight className="w-3 h-3" />
-            </Button>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span className="text-sm font-semibold text-white">Stage Complete</span>
           </motion.div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

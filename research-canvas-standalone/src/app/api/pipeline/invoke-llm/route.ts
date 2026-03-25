@@ -128,9 +128,9 @@ async function invokeGroq(prompt: string): Promise<string> {
   // Try multiple models in order of preference
   // These are confirmed available models on Groq as of March 2026
   const models = [
+    "llama-3.3-70b-versatile", // Latest Llama 3.3, very capable
     "mixtral-8x7b-32768", // Fast, general purpose
     "llama-3.1-8b-instant", // Lightweight, fast
-    "gemma-7b-it", // Alternative lightweight option
   ];
 
   for (const model of models) {
@@ -149,6 +149,7 @@ async function invokeGroq(prompt: string): Promise<string> {
             model,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
+            max_tokens: 1024,
           }),
         },
       );
