@@ -41,7 +41,7 @@ export function AIChatDashboard({
       },
     ],
     handler: ({ broadcaster_name }) => {
-      handleBroadcasterSelect(broadcaster_name);
+      onBroadcasterSelect(broadcaster_name);
       return `Loaded data for ${broadcaster_name}. Dashboard is now showing their information.`;
     },
   });
