@@ -51,10 +51,10 @@ Proactively offer quick action buttons like:
 **Always Ask:**
 "Which broadcaster would you like me to research?" if not provided.`,
     suggestions: [
-      "Fetch BBC's ads.txt and identify their ad server",
-      "Check ITV's smartclip compatibility score",
-      "Find decision makers at Paramount Communications",
-      "Analyze Comcast's current SSP partnerships"
+      { text: "Fetch BBC's ads.txt and identify their ad server" },
+      { text: "Check ITV's smartclip compatibility score" },
+      { text: "Find decision makers at Paramount Communications" },
+      { text: "Analyze Comcast's current SSP partnerships" }
     ]
   });
 
