@@ -284,6 +284,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
+    if (!args) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ error: "Missing arguments for tool call" }),
+          },
+        ],
+        isError: true,
+      };
+    }
+
     switch (name) {
       case "analyze_broadcaster": {
         const normalized = (args.broadcasterName as string)
