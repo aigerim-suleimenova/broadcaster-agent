@@ -83,7 +83,7 @@ export function BarChart({
         )}
 
         <Tooltip
-          formatter={(value: number) => [valueFormatter(value), ""]}
+          formatter={(value: any) => [typeof value === 'number' ? valueFormatter(value) : "", ""]}
           labelFormatter={(value) => `${value}`}
           separator=""
           itemStyle={{ padding: "2px 0" }}

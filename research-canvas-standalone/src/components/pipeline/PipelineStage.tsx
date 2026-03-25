@@ -235,9 +235,10 @@ export default function PipelineStage({
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-white/20 text-white backdrop-blur-sm"
             >
-              {getStatusText()}
+              <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-white/20 text-white backdrop-blur-sm">
+                {getStatusText()}
+              </div>
             </motion.div>
           </div>
         </div>
@@ -251,10 +252,11 @@ export default function PipelineStage({
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="relative w-12 h-12"
               >
-                <div className="absolute inset-0 rounded-full border-2 border-white/20" />
-                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 border-r-purple-400" />
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 border-r-purple-400" />
+                </div>
               </motion.div>
               <div className="text-center">
                 <p className="text-white font-medium">Processing Stage {stageIndex + 1}</p>
@@ -380,9 +382,8 @@ export default function PipelineStage({
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="group"
               >
-                <div className="bg-white/[0.03] border border-white/10 rounded-lg p-3 hover:border-white/20 hover:bg-white/[0.06] transition-all duration-300">
+                <div className="group bg-white/[0.03] border border-white/10 rounded-lg p-3 hover:border-white/20 hover:bg-white/[0.06] transition-all duration-300">
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 pt-0.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-purple-400" />
@@ -402,10 +403,11 @@ export default function PipelineStage({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="pt-4 mt-4 border-t border-white/10 flex items-center gap-2 px-2"
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            <span className="text-sm font-semibold text-white">Stage Complete</span>
+            <div className="pt-4 mt-4 border-t border-white/10 flex items-center gap-2 px-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span className="text-sm font-semibold text-white">Stage Complete</span>
+            </div>
           </motion.div>
         )}
       </div>

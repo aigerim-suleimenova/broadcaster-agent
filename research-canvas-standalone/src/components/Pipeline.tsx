@@ -716,9 +716,9 @@ Format the response as JSON:
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="border-t border-white/10 bg-black/30 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-4"
               >
-                <div className="max-w-5xl mx-auto flex justify-between items-center">
+                <div className="border-t border-white/10 bg-black/30 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-4">
+                  <div className="max-w-5xl mx-auto flex justify-between items-center">
                   <div>
                     <p className="text-sm text-white/70 font-medium">
                       Stage complete. Ready to continue?
@@ -742,9 +742,10 @@ Format the response as JSON:
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity }}
-                            className="inline-block"
                           >
-                            <Clock className="w-4 h-4" />
+                            <div className="inline-block">
+                              <Clock className="w-4 h-4" />
+                            </div>
                           </motion.div>
                           Processing...
                         </>
@@ -757,6 +758,7 @@ Format the response as JSON:
                     </Button>
                   </div>
                 </div>
+              </div>
               </motion.div>
             )}
           </div>

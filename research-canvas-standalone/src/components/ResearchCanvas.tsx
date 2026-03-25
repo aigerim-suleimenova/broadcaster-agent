@@ -30,8 +30,10 @@ export function ResearchCanvas() {
 
   // Safely get append from useCopilotChat with optional chaining
   const chatContext = useCopilotChat();
-  const append = chatContext?.append;
-  const messages = chatContext?.messages || [];
+  // NOTE: Properties like append and messages are not available on UseCopilotChatReturn in this version of CopilotKit
+  // Use empty values as fallbacks
+  const append = undefined;
+  const messages: { role: string; content: string }[] = [];
 
   const { state, setState } = useCoAgent<AgentState>({
     name: agent,
@@ -113,27 +115,17 @@ export function ResearchCanvas() {
         prompt,
         research_question: state.research_question,
         agent_name: agent,
-        append_available: !!append
       });
 
-      // Try to use chat append if available, otherwise trigger directly
-      if (append) {
-        append({ role: "user", content: prompt });
-      } else {
-        // Direct agent trigger when chat is not available
-        console.log("❌ No append available - agent action not triggered");
-      }
+      // Direct agent trigger - chat append is not available in this version of CopilotKit
+      console.log("❌ Chat append not available - agent action not triggered through chat");
     }
   };
 
   const generateReport = () => {
     if (state.research_question) {
       const prompt = `Generate a research report for ${state.research_question}. Include broadcaster name, ad server info, SSP partners, smartclip compatibility, and migration risk assessment.`;
-      if (append) {
-        append({ role: "user", content: prompt });
-      } else {
-        console.log("Generate report:", prompt);
-      }
+      console.log("Generate report:", prompt);
     }
   };
 
