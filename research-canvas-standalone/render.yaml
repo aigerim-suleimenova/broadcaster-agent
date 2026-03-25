@@ -12,6 +12,7 @@ services:
   - type: web
     name: broadcaster-agent-backend
     env: python
+    pythonVersion: 3.12
     buildCommand: pip install -r requirements.txt
     startCommand: python agents/python/inference_server.py
     envVars:
