@@ -67,15 +67,7 @@ export function AIChatDashboard({
     description: "Get a summary of current broadcaster metrics",
     parameters: [],
     handler: async () => {
-      context.setIsLoading(true);
       // Simulate fetching summary data
-      const summaryData = {
-        broadcaster: currentBroadcaster,
-        totalMetrics: Math.random() * 100,
-        trend: Math.random() > 0.5 ? "up" : "down",
-      };
-      context.setDashboardData(summaryData);
-      setTimeout(() => context.setIsLoading(false), 500);
       return `Summary for ${currentBroadcaster}: Updated dashboard with latest metrics and trends.`;
     },
   });
@@ -90,14 +82,6 @@ export function AIChatDashboard({
       },
     ],
     handler: ({ focus_area }) => {
-      context.setIsLoading(true);
-      const analysisData = {
-        focusArea: focus_area,
-        broadcaster: currentBroadcaster,
-        analysis: `Detailed analysis of ${focus_area} metrics`,
-      };
-      context.setMetrics(analysisData);
-      setTimeout(() => context.setIsLoading(false), 500);
       return `Analysis of ${focus_area} for ${currentBroadcaster} is now displayed on the dashboard.`;
     },
   });
