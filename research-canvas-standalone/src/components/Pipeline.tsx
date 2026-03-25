@@ -552,9 +552,8 @@ Format the response as JSON:
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: stage.num * 0.1 }}
-                        className="group"
                       >
-                        <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-lg p-4 sm:p-3 h-full hover:border-purple-500/30 hover:bg-gradient-to-br hover:from-purple-500/10 hover:to-purple-500/5 transition-all duration-300">
+                        <div className="group bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-lg p-4 sm:p-3 h-full hover:border-purple-500/30 hover:bg-gradient-to-br hover:from-purple-500/10 hover:to-purple-500/5 transition-all duration-300">
                           <div className="text-2xl mb-2">{stage.icon}</div>
                           <div className="flex items-center gap-2 mb-2">
                             <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-r from-purple-500/40 to-pink-500/40 border border-white/20">
