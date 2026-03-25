@@ -131,7 +131,7 @@ export default function Pipeline() {
         behavior: "smooth",
       });
     }
-  }, [scrollToBottom]);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(scrollToBottom, 300);
@@ -502,9 +502,9 @@ Format the response as JSON:
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex-1 flex flex-col justify-center"
             >
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 sm:py-20">
+              <div className="flex-1 flex flex-col justify-center">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 sm:py-20">
                 {/* Hero Section */}
                 <div className="text-center mb-12">
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-purple-200">
