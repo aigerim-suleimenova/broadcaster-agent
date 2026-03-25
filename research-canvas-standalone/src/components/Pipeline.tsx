@@ -626,8 +626,8 @@ Format the response as JSON:
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="flex-1 overflow-y-auto"
                 >
+                  <div className="flex-1 overflow-y-auto">
                   {activeStage === 0 && running ? (
                     <div className="w-full h-full flex flex-col" style={{ height: "calc(100% - 0px)" }}>
                       <div
@@ -706,6 +706,7 @@ Format the response as JSON:
                       />
                     </div>
                   )}
+                  </div>
                 </motion.div>
               </AnimatePresence>
             </div>
