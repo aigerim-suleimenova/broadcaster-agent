@@ -131,12 +131,12 @@ export default function Pipeline() {
         behavior: "smooth",
       });
     }
-  }, []);
+  }, [scrollToBottom]);
 
   useEffect(() => {
     const timer = setTimeout(scrollToBottom, 300);
     return () => clearTimeout(timer);
-  }, [stages, stageStatuses]);
+  }, [stages, stageStatuses, scrollToBottom]);
 
   // Cleanup abort controller on unmount
   useEffect(() => {
@@ -207,7 +207,7 @@ export default function Pipeline() {
     setIsProcessing(true);
 
     // Retrieve context and ensure all properties have defaults
-    let context = pipelineContextRef.current || ({} as PipelineContext);
+    const context = pipelineContextRef.current || ({} as PipelineContext);
     if (!context.fundamentSSPs) context.fundamentSSPs = [];
     if (!context.decisionMakers) context.decisionMakers = [];
     if (!context.compatibilityScore) context.compatibilityScore = 0;
@@ -769,7 +769,7 @@ Format the response as JSON:
           <DialogHeader>
             <DialogTitle className="text-white text-lg">Ready to Continue?</DialogTitle>
             <DialogDescription className="text-white/60 text-sm">
-              You've completed the {["Broadcaster Research", "Compatibility Analysis", "Decision Makers", "Outreach Planning"][pendingStageNumber - 1]} stage. Review the findings above before proceeding to the next step.
+              You&apos;ve completed the {["Broadcaster Research", "Compatibility Analysis", "Decision Makers", "Outreach Planning"][pendingStageNumber - 1]} stage. Review the findings above before proceeding to the next step.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-3 sm:gap-0 flex-row justify-end">

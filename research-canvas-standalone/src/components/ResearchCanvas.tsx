@@ -83,7 +83,7 @@ export function ResearchCanvas() {
       setMcpMetrics(null);
       setState({ ...state, broadcaster_metrics: null });
     }
-  }, [state.research_question]);
+  }, [state.research_question, state]);
 
   // Fallback metrics generator if MCP is unavailable
   const generateFallbackMetrics = (broadcasterName: string): BroadcasterMetrics => {
@@ -316,7 +316,7 @@ export function ResearchCanvas() {
 
       setLastKnownReport(state.report);
     }
-  }, [state.report, lastKnownReport, resources]);
+  }, [state.report, lastKnownReport, resources, setResources]);
 
   // Debug: log state changes
   useEffect(() => {

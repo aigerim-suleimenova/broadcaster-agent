@@ -190,7 +190,7 @@ async function handleGenerateMetrics(args: Record<string, any>) {
   const query = args.query as string;
   const includeRiskAssessment = args.includeRiskAssessment ?? true;
   const normalized = query.toLowerCase().trim();
-  let metrics =
+  const metrics =
     broadcasterDatabase[normalized] || generateDefaultMetrics(query);
 
   if (!includeRiskAssessment) {

@@ -61,7 +61,7 @@ const parseAndCleanMessages = (messages: string[]): string[] => {
     }
 
     // Remove markdown code blocks and clean the message
-    let cleanMsg = msg.replace(/```json|```/g, '').trim();
+    const cleanMsg = msg.replace(/```json|```/g, '').trim();
 
     // Try to extract JSON from the message
     const jsonMatch = cleanMsg.match(/\{[\s\S]*"messages"[\s\S]*\}/);

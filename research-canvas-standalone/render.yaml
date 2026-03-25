@@ -2,6 +2,7 @@ services:
   - type: web
     name: broadcaster-agent-frontend
     env: node
+    rootDir: research-canvas-standalone
     buildCommand: pnpm install && pnpm run build
     startCommand: pnpm start
     envVars:
@@ -18,6 +19,7 @@ services:
   - type: web
     name: broadcaster-agent-backend
     env: python
+    rootDir: research-canvas-standalone
     pythonVersion: 3.12
     buildCommand: pip install -r requirements.txt
     startCommand: python agents/python/inference_server.py

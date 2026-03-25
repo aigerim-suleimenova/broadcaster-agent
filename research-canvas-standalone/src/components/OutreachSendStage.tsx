@@ -80,7 +80,7 @@ export function OutreachSendStage({
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">Gmail Authentication Required</h3>
           <p className="text-sm text-white/60 mb-6">
-            Connect your Gmail account to send outreach emails. This requires the "Send emails" permission.
+            Connect your Gmail account to send outreach emails. This requires the &quot;Send emails&quot; permission.
           </p>
           <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-left mb-6">
             <p className="text-xs text-white/70 mb-2 font-medium">Required scope:</p>
