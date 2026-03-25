@@ -57,7 +57,7 @@ export function AIChatDashboard({
       },
     ],
     handler: ({ broadcasters }) => {
-      handleCompare(broadcasters);
+      onCompare(broadcasters);
       return `Dashboard now shows comparison between ${broadcasters.join(", ")}. You can see the metrics side-by-side.`;
     },
   });
@@ -105,13 +105,13 @@ export function AIChatDashboard({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
-      handleBroadcasterSelect(searchInput.trim());
+      onBroadcasterSelect(searchInput.trim());
       setSearchInput("");
     }
   };
 
   const handleSuggestedClick = (broadcaster: string) => {
-    handleBroadcasterSelect(broadcaster);
+    onBroadcasterSelect(broadcaster);
   };
 
   return (
