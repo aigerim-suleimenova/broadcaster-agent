@@ -586,7 +586,7 @@ Format the response as JSON:
                     const isComplete = stageStatuses[i] === "complete";
 
                     return (
-                      <motion.button
+                      <button
                         key={i}
                         onClick={() => isAccessible && setActiveStage(i)}
                         disabled={!isAccessible}
@@ -597,7 +597,6 @@ Format the response as JSON:
                             ? "flex-1 bg-gradient-to-r from-emerald-400 to-green-500"
                             : "flex-1 bg-white/10"
                         } ${isAccessible ? "cursor-pointer" : "cursor-default"}`}
-                        whileHover={isAccessible ? { scale: 1.02 } : {}}
                       />
                     );
                   })}
