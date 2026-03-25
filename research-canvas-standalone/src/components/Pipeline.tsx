@@ -567,6 +567,7 @@ Format the response as JSON:
                       </motion.div>
                     ))}
                   </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
