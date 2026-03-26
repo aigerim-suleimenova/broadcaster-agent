@@ -63,7 +63,14 @@ export function ResearchCanvas() {
           const result = await analyzeBroadcaster();
           if (isMounted && result) {
             setMcpMetrics(result);
-            setState((prevState) => ({ ...prevState, broadcaster_metrics: result }));
+            setState((prevState) => ({
+              model: prevState?.model ?? model,
+              research_question: prevState?.research_question ?? state.research_question,
+              report: prevState?.report ?? "",
+              resources: prevState?.resources ?? [],
+              logs: prevState?.logs ?? [],
+              broadcaster_metrics: result
+            }));
           }
         } catch (error) {
           console.error("Error fetching MCP metrics:", error);
@@ -71,7 +78,14 @@ export function ResearchCanvas() {
           const fallbackMetrics = generateFallbackMetrics(state.research_question);
           if (isMounted) {
             setMcpMetrics(fallbackMetrics);
-            setState((prevState) => ({ ...prevState, broadcaster_metrics: fallbackMetrics }));
+            setState((prevState) => ({
+              model: prevState?.model ?? model,
+              research_question: prevState?.research_question ?? state.research_question,
+              report: prevState?.report ?? "",
+              resources: prevState?.resources ?? [],
+              logs: prevState?.logs ?? [],
+              broadcaster_metrics: fallbackMetrics
+            }));
           }
         }
       };
@@ -83,7 +97,14 @@ export function ResearchCanvas() {
       };
     } else {
       setMcpMetrics(null);
-      setState((prevState) => ({ ...prevState, broadcaster_metrics: null }));
+      setState((prevState) => ({
+        model: prevState?.model ?? model,
+        research_question: prevState?.research_question ?? "",
+        report: prevState?.report ?? "",
+        resources: prevState?.resources ?? [],
+        logs: prevState?.logs ?? [],
+        broadcaster_metrics: null
+      }));
     }
   }, [state.research_question]);
 
