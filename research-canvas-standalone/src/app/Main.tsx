@@ -60,16 +60,16 @@ Proactively offer quick action buttons like:
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#1e3a8a] to-[#581c87] text-white relative overflow-hidden">
+      <div className="h-screen bg-gradient-to-br from-[#0a1628] via-[#1e3a8a] to-[#581c87] text-white relative flex flex-col overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" style={{ willChange: "opacity" }} />
           <div
             className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: "1s" }}
+            style={{ animationDelay: "1s", willChange: "opacity" }}
           />
         </div>
 
-        <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0 z-10">
+        <div className="border-b border-white/10 bg-black/20 backdrop-blur-xl sticky top-0 z-10 flex-shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg shadow-purple-500/50" />
@@ -82,13 +82,12 @@ Proactively offer quick action buttons like:
 
         <div
           className="flex flex-1 relative z-10"
-          style={{ height: "calc(100vh - 70px)" }}
         >
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
             <ResearchCanvas />
           </div>
           <div
-            className="w-[500px] h-full flex-shrink-0 border-l border-white/10"
+            className="w-[500px] h-full flex-shrink-0 border-l border-white/10 overflow-y-auto overscroll-contain"
             style={
               {
                 "--copilot-kit-background-color": "#0a1628",

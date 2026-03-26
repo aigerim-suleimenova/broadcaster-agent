@@ -363,7 +363,7 @@ export function ResearchCanvas() {
   };
 
   return (
-    <div className="w-full h-full overflow-y-auto p-10 bg-white/5 backdrop-blur-sm">
+    <div className="w-full overflow-y-auto p-10 bg-white/5 backdrop-blur-sm">
       <div className="space-y-8 pb-10">
         {/* AI Chat Control */}
         <AIChatDashboard
