@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/aigerimsuleimenova/research-canvas-standalone/agents/python/.venv"
+set -gx VIRTUAL_ENV "/Users/aigerimsuleimenova/broadcaster-agent/research-canvas-standalone/agents/python/.venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

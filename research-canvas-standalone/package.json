@@ -9,7 +9,7 @@
     "dev": "concurrently -k -n ui,agent -c blue,red \"PORT=3000 npm run dev:ui\" \"PORT=8000 npm run dev:agent\"",
     "dev:ui": "next dev",
     "dev:agent": "npm run dev:agent:py",
-    "dev:agent:py": "cd agents/python && uv run main.py",
+    "dev:agent:py": "cd agents/python && source .venv/bin/activate && python main.py",
     "install:agent:py": "cd agents/python && uv sync",
     "install:agent:ts": "cd agents/typescript && pnpm i"
   },
