@@ -63,7 +63,7 @@ export function ResearchCanvas() {
           const result = await analyzeBroadcaster();
           if (isMounted && result) {
             setMcpMetrics(result);
-            setState({ ...state, broadcaster_metrics: result });
+            setState((prevState) => ({ ...prevState, broadcaster_metrics: result }));
           }
         } catch (error) {
           console.error("Error fetching MCP metrics:", error);
@@ -71,7 +71,7 @@ export function ResearchCanvas() {
           const fallbackMetrics = generateFallbackMetrics(state.research_question);
           if (isMounted) {
             setMcpMetrics(fallbackMetrics);
-            setState({ ...state, broadcaster_metrics: fallbackMetrics });
+            setState((prevState) => ({ ...prevState, broadcaster_metrics: fallbackMetrics }));
           }
         }
       };
@@ -83,9 +83,9 @@ export function ResearchCanvas() {
       };
     } else {
       setMcpMetrics(null);
-      setState({ ...state, broadcaster_metrics: null });
+      setState((prevState) => ({ ...prevState, broadcaster_metrics: null }));
     }
-  }, [state.research_question, state]);
+  }, [state.research_question]);
 
   // Fallback metrics generator if MCP is unavailable
   const generateFallbackMetrics = (broadcasterName: string): BroadcasterMetrics => {
