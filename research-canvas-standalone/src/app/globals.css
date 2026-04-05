@@ -97,119 +97,50 @@ body {
   }
 }
 
-.copilotKitMessage.copilotKitUserMessage {
-  border-radius: 25px;
-  color: #bcbcbc !important;
-  background-color: #bcbcbc25 !important;
-  font-size: 20px !important;
-  font-weight: 400 !important;
-  padding: 16px 43px !important;
+/* ── Global scrollbar styling ─────────────────────────────────────────────── */
+/* Thin, branded scrollbar matching the dark-blue design system.              */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.35) transparent;
+}
+/* Chrome / Safari / Edge */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 130, 246, 0.35);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
-.copilotKitMessage.copilotKitUserMessage * {
-  color: #0a1628 !important;
-}
+/* ── CopilotKit overrides (authoritative source is src/components/chat/style.css) ── */
+/* Only global layout / window sizing lives here; color/typography is in style.css  */
 
-.copilotKitMessage.copilotKitUserMessage p,
-.copilotKitMessage.copilotKitUserMessage span,
-.copilotKitMessage.copilotKitUserMessage div,
-.copilotKitMessage.copilotKitUserMessage a {
-  color: #0a1628 !important;
-}
-
-.copilotKitMessage.copilotKitAssistantMessage {
-  border-radius: 0.5rem 0.5rem 0.5rem 0;
-  color: #ffffff !important;
-}
-
-.copilotKitMessage.copilotKitAssistantMessage * {
-  color: #ffffff !important;
-}
-
-.copilotKitMessage.copilotKitAssistantMessage p,
-.copilotKitMessage.copilotKitAssistantMessage span,
-.copilotKitMessage.copilotKitAssistantMessage div,
-.copilotKitMessage.copilotKitAssistantMessage a {
-  color: #ffffff !important;
-}
-
-.copilotKitChat {
-  background-color: var(--copilot-kit-background-color) !important;
-  color: #ffffff !important;
-  padding: 1rem !important;
-}
-
-.copilotKitMessage {
-  color: #ffffff !important;
-}
-
-.copilotKitMessage * {
-  color: #ffffff !important;
-}
-
-.copilotKitMarkdownElement {
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  color: #bcbcbc;
-  transition: all 0.3s ease;
-  line-height: 26px;
-}
-
-.copilotKitMessage p,
-.copilotKitMessage span,
-.copilotKitMessage div,
-.copilotKitMessage a {
-  color: #ffffff !important;
-}
 .copilotKitWindow {
   width: 30rem !important;
   height: 650px !important;
-}
-
-.copilotKitMessages {
-  background-color: transparent !important;
-  padding: 0.5rem !important;
-}
-
-.copilotKitResponseButton {
-  background-color: transparent !important;
-  border: 0px !important;
 }
 
 .copilotKitButton {
   background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
   border: none !important;
 }
-.copilotKitInput {
-  background-color: #bcbcbc25 !important;
-  border: 1px solid #ffffff80 !important;
-}
-.textarea {
-  color: #fff !important;
-  font-size: 20px !important;
-}
 
-.copilotKitInput > textarea {
-  background-color: transparent !important;
-  color: #ffffff !important;
-  border: none !important;
-  font-size: 20px !important;
-  border-radius: 0.75rem !important;
-  padding: 0.75rem 1rem !important;
-}
-
-.copilotKitInput > textarea::placeholder {
-  font-size: 20px !important;
-  font-weight: 400 !important; /* Text color */ /* Letter spacing */
-}
-
-.copilotKitInput > textarea:focus {
-  color: #ffffff !important;
-  background-color: transparent !important;
+.copilotKitHeader {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
 }
 
 .copilotKitInput > .copilotKitInputControls > button {
-  color: var(--copilot-kit-secondary-color);
   background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
   color: #ffffff !important;
   border: none !important;
@@ -223,7 +154,7 @@ body {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  transition: all 0.3s ease !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
   box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4) !important;
   flex-shrink: 0;
 }
@@ -233,6 +164,7 @@ body {
   box-shadow: 0 6px 24px rgba(236, 72, 153, 0.6) !important;
 }
 
-.copilotKitHeader {
-  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
+.copilotKitResponseButton {
+  background-color: transparent !important;
+  border: 0px !important;
 }

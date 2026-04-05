@@ -9,51 +9,94 @@ import { motion, AnimatePresence } from "framer-motion";
 import PipelineStage from "@/components/pipeline/PipelineStage";
 import { OutreachSendStage } from "@/components/OutreachSendStage";
 
-import { CopilotPopup } from "@copilotkit/react-ui";
 import App from "./App";
 import { CopilotKit } from "@copilotkit/react-core";
+import { sampleDocuments, type SampleDocument } from "@/data/sampleDocuments";
 
 interface PipelineContext {
   broadcasterName: string;
   domain: string;
+  researchMarkdown: string;          // Stage 0 output — passed into all later stages
   compatibilityScore: number;
   compatibilityNotes: string;
   migrationRisk: "low" | "medium" | "high";
   adServer: string;
+  currentSSPs: string[];
   fundamentSSPs: string[];
   smartclipPresent: boolean;
+  revenueOpportunity: string;
   decisionMakers: Array<{ name: string; title: string }>;
   primaryContact: string;
   outreachStrategy?: string;
   emailDraft?: { subject: string; body: string };
   emailsSent?: Array<{ to: string; subject: string; messageId: string }>;
 }
-import A2UITestPage from '../A2UITestPage'
-import NewsComponentsTestPage from './pages/NewsComponentsTestPage'
-import TestPeopleComponents from './pages/TestPeopleComponents'
-import SummaryComponentsTestPage from './pages/SummaryComponentsTestPage'
-import MediaComponentsTest from './pages/MediaComponentsTest'
-import DataComponentsTest from './pages/DataComponentsTest'
-import ResourceTest from './pages/ResourceTest'
-import A2UIValidatorTest from './pages/A2UIValidatorTest'
-import ComponentShowcase from './pages/ComponentShowcase'
 
 const THREAD_STORAGE_KEY = 'copilotkit-thread-id'
+
+// ─── Broadcaster doc sidebar ──────────────────────────────────────────────────
+
+function BroadcasterDocSidebar({
+  broadcasterName,
+  selectedId,
+  onSelect,
+}: {
+  broadcasterName: string;
+  selectedId: string | undefined;
+  onSelect: (doc: SampleDocument) => void;
+}) {
+  const name = broadcasterName.trim().toLowerCase();
+  const matched = sampleDocuments.filter(
+    (d) => d.broadcaster && d.broadcaster.toLowerCase().includes(name)
+  );
+
+  if (matched.length === 0) return null;
+
+  return (
+    <div className="w-72 shrink-0 flex flex-col border-r border-white/10 bg-black/20 backdrop-blur-sm overflow-y-auto">
+      <div className="px-4 py-3 border-b border-white/10">
+        <p className="text-xs text-white/50 uppercase tracking-wider font-semibold">Documents</p>
+        <p className="text-sm font-bold text-white mt-0.5">{broadcasterName}</p>
+        <p className="text-xs text-white/40 mt-0.5">{matched.length} document{matched.length !== 1 ? 's' : ''} found</p>
+      </div>
+      <div className="flex-1 p-3 space-y-2">
+        {matched.map((doc) => {
+          const isSelected = selectedId === doc.id;
+          return (
+            <button
+              key={doc.id}
+              onClick={() => onSelect(doc)}
+              className={`w-full text-left p-3 rounded-lg border transition-all duration-200 ${
+                isSelected
+                  ? "bg-purple-600/30 border-purple-500/60 shadow-lg shadow-purple-500/20"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">{doc.icon}</span>
+                <span className="text-sm font-semibold text-white truncate">{doc.title}</span>
+              </div>
+              <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                isSelected ? "bg-purple-500/30 text-purple-200" : "bg-white/10 text-white/50"
+              }`}>
+                {doc.category}
+              </span>
+              <p className="text-xs text-white/40 mt-1.5 leading-relaxed line-clamp-2">
+                {doc.description}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const getBroadcasterDomain = (broadcasterName: string): string => {
   const cleaned = broadcasterName.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9]/g, "");
   return `${cleaned}.com`;
 };
 
-const extractCompatibilityData = (stage2Messages: string[]) => {
-  const fullText = stage2Messages.join("\n");
-  const scoreMatch = fullText.match(/(?:Compatibility Score|Score):\s*(\d+)\s*\/\s*100/i);
-  const score = scoreMatch ? parseInt(scoreMatch[1]) : 65;
-  const riskMatch = fullText.match(/(?:Risk|difficulty):\s*(low|medium|high)/i);
-  const risk = (riskMatch ? riskMatch[1].toLowerCase() : "medium") as "low" | "medium" | "high";
-  const notes = stage2Messages[stage2Messages.length - 1] || "";
-  return { score, risk, notes };
-};
 
 const extractDecisionMakers = (stage3Messages: string[]) => {
   const contactLines = stage3Messages[1] || "";
@@ -66,8 +109,6 @@ const extractDecisionMakers = (stage3Messages: string[]) => {
 };
 
 export default function Pipeline() {
-  const model = "openai";
-
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
   const [broadcasterName, setBroadcasterName] = useState("");
@@ -79,6 +120,7 @@ export default function Pipeline() {
   const [stages, setStages] = useState<Array<{ messages: string[]; isCheckpoint: boolean }>>([]);
   const [pipelineData, setPipelineData] = useState<Record<string, string[]>>({});
   const [activeStage, setActiveStage] = useState(0);
+  const [selectedDocContent, setSelectedDocContent] = useState<string | undefined>(undefined);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef(false);
@@ -105,23 +147,6 @@ export default function Pipeline() {
       window.localStorage.setItem(THREAD_STORAGE_KEY, threadId);
       setSharedThreadId(threadId);
     }, []);
-
-  function getAppComponent() {
-    if (typeof window === "undefined") return <App />;
-
-    // Use test pages based on query params (check specific tests first to avoid conflicts)
-    const search = window.location.search;
-    if (search.includes('showcase')) return <ComponentShowcase />;
-    if (search.includes('validator-test')) return <A2UIValidatorTest />;
-    if (search.includes('resource-test')) return <ResourceTest />;
-    if (search.includes('data-test')) return <DataComponentsTest />;
-    if (search.includes('media-test')) return <MediaComponentsTest />;
-    if (search.includes('summary-test')) return <SummaryComponentsTestPage />;
-    if (search.includes('people-test')) return <TestPeopleComponents />;
-    if (search.includes('news-test')) return <NewsComponentsTestPage />;
-    if (search === '?test' || search.startsWith('?test&')) return <A2UITestPage />;
-    return <App />;
-  }
 
   const showProceedConfirm = () => {
     setPendingStageNumber(activeStage + 1);
@@ -158,17 +183,39 @@ export default function Pipeline() {
     setStages(initialStages);
     setStageStatuses(["active", "pending", "pending", "pending", "pending"]);
     setActiveStage(0);
+    setSelectedDocContent(undefined);
 
     const domain = getBroadcasterDomain(name);
     const context: PipelineContext = {
-      broadcasterName: name, domain, adServer: "", fundamentSSPs: [],
-      smartclipPresent: false, compatibilityScore: 0, compatibilityNotes: "",
+      broadcasterName: name, domain, researchMarkdown: "", adServer: "",
+      currentSSPs: [], fundamentSSPs: [], smartclipPresent: false,
+      revenueOpportunity: "", compatibilityScore: 0, compatibilityNotes: "",
       migrationRisk: "medium", decisionMakers: [], primaryContact: "",
       emailDraft: undefined, emailsSent: [],
     };
     pipelineContextRef.current = context;
 
-    await new Promise((res) => setTimeout(res, 1000));
+    // Stage 0: AI generates a broadcaster analysis markdown report
+    try {
+      const res = await fetch("/api/pipeline/invoke-llm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "broadcaster_report", broadcasterName: name }),
+        signal: abortController.signal,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.markdown) {
+          setSelectedDocContent(data.markdown);
+          // Store for use in all subsequent stages
+          context.researchMarkdown = data.markdown;
+        }
+      }
+    } catch {
+      // Silently skip — user can still paste their own markdown
+    }
+
     if (abortRef.current || abortController.signal.aborted) return;
 
     setStageStatuses((prev) => { const n = [...prev]; n[0] = "complete"; return n; });
@@ -183,39 +230,76 @@ export default function Pipeline() {
 
     const context = pipelineContextRef.current || ({} as PipelineContext);
     if (!context.fundamentSSPs)   context.fundamentSSPs = [];
+    if (!context.currentSSPs)     context.currentSSPs = [];
     if (!context.decisionMakers)  context.decisionMakers = [];
     if (!context.compatibilityScore) context.compatibilityScore = 0;
     if (!context.migrationRisk)   context.migrationRisk = "medium";
     if (!context.adServer)        context.adServer = "Unknown";
     if (!context.primaryContact)  context.primaryContact = "Unknown";
     if (!context.compatibilityNotes) context.compatibilityNotes = "";
+    if (!context.revenueOpportunity) context.revenueOpportunity = "";
 
     const abortController = abortControllerRef.current;
-    let result: { messages?: string[] } | undefined;
+    const research = context.researchMarkdown
+      ? `\n\nBROADCASTER RESEARCH REPORT:\n${context.researchMarkdown.slice(0, 3000)}`
+      : "";
+
+    let result: { messages?: string[]; emailSubject?: string; emailBody?: string } | undefined;
 
     try {
       setStageStatuses((prev) => { const n = [...prev]; n[nextStage] = "active"; return n; });
 
       if (nextStage === 1) {
-        const prompt = `You are a compatibility analysis agent. Analyze "${context.broadcasterName}" compatibility with smartclip.
-          Return JSON: { "messages": ["Analyzing...", "<assessment>", "<risk>", "Compatibility Score: 78/100"] }`;
+        const prompt = `You are a Smartclip partnership analyst. Smartclip is a video ad tech company that provides SSP, ad serving, and CTV monetisation solutions for broadcasters.
+
+Analyze "${context.broadcasterName}" for Smartclip partnership compatibility based on the research below.${research}
+
+Evaluate these areas and return a JSON object with a "messages" array of exactly 5 strings:
+1. "Analyzing ad tech stack for ${context.broadcasterName}..." (status message)
+2. Ad Server & SSP Analysis: what ad server they use, current SSP partners, and whether Smartclip adds incremental demand or conflicts
+3. Video Inventory Assessment: pre-roll/mid-roll/CTV/HbbTV inventory volume and types — how well they fit Smartclip's demand
+4. Revenue Opportunity & Migration Risk: estimated CPM uplift Smartclip could deliver, migration complexity (Low/Medium/High), timeline
+5. "Compatibility Score: [NUMBER]/100 | Migration Risk: [low/medium/high] | Ad Server: [name] | Current SSPs: [comma-separated list] | Revenue Opportunity: [estimate]"
+
+The last message MUST end with that exact format so data can be extracted.
+Return ONLY valid JSON: { "messages": ["...", "...", "...", "...", "..."] }`;
+
         result = await fetch("/api/pipeline/invoke-llm", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, model }), signal: abortController?.signal,
+          body: JSON.stringify({ prompt }), signal: abortController?.signal,
         }).then(async (res) => { if (!res.ok) throw new Error("LLM API failed"); return res.json(); });
 
         if (result?.messages) {
-          const d = extractCompatibilityData(result.messages as string[]);
-          context.compatibilityScore = d.score;
-          context.migrationRisk = d.risk;
-          context.compatibilityNotes = d.notes;
+          const last = (result.messages as string[]).at(-1) ?? "";
+          const scoreMatch = last.match(/Compatibility Score:\s*(\d+)/i);
+          const riskMatch  = last.match(/Migration Risk:\s*(low|medium|high)/i);
+          const adMatch    = last.match(/Ad Server:\s*([^|]+)/i);
+          const sspMatch   = last.match(/Current SSPs:\s*([^|]+)/i);
+          const revMatch   = last.match(/Revenue Opportunity:\s*(.+)/i);
+          context.compatibilityScore = scoreMatch ? parseInt(scoreMatch[1]) : 65;
+          context.migrationRisk = (riskMatch?.[1]?.toLowerCase() ?? "medium") as "low" | "medium" | "high";
+          context.adServer = adMatch?.[1]?.trim() ?? "Unknown";
+          context.currentSSPs = sspMatch?.[1]?.split(",").map(s => s.trim()) ?? [];
+          context.revenueOpportunity = revMatch?.[1]?.trim() ?? "";
+          context.compatibilityNotes = (result.messages as string[])[3] ?? "";
         }
+
       } else if (nextStage === 2) {
-        const prompt = `Identify decision makers at "${context.broadcasterName}".
-          Return: { "messages": ["Identifying...", "Found: [Name], [Title]\\nFound: [Name], [Title]", "Ranking..."] }`;
+        const prompt = `You are a B2B sales intelligence analyst. Identify the real decision makers at "${context.broadcasterName}" who would be responsible for ad technology, video monetisation, and digital partnerships.${research}
+
+Focus on roles like: Chief Digital Officer, VP/Head of Ad Tech, VP/Head of Digital Revenue, Head of Programmatic, CTO, Head of Streaming/OTT.
+
+Return ONLY valid JSON with a "messages" array of exactly 4 strings:
+1. "Identifying decision makers at ${context.broadcasterName}..." (status message)
+2. List of contacts in this exact format per line: "Found: [Full Name], [Job Title]" — provide 3-4 people
+3. "Primary contact selected: [Name] — [reason why they are the best entry point]"
+4. "LinkedIn/contact strategy: [brief note on best way to reach them]"
+
+Return ONLY: { "messages": ["...", "...", "...", "..."] }`;
+
         result = await fetch("/api/pipeline/invoke-llm", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, model }), signal: abortController?.signal,
+          body: JSON.stringify({ prompt }), signal: abortController?.signal,
         }).then(async (res) => { if (!res.ok) throw new Error("LLM API failed"); return res.json(); });
 
         if (result?.messages) {
@@ -223,29 +307,74 @@ export default function Pipeline() {
           context.decisionMakers = makers;
           context.primaryContact = makers[0]?.name || "Unknown";
         }
+
       } else if (nextStage === 3) {
-        const prompt = `Draft outreach strategy for "${context.broadcasterName}" to ${context.primaryContact}.
-          Return: { "messages": ["Drafting outreach...", "<angle>", "Proposing pilot."] }`;
+        const contact = context.decisionMakers[0] || { name: context.primaryContact, title: "Head of Ad Tech" };
+        const prompt = `You are a Smartclip sales strategist. Draft a personalised outreach strategy for approaching ${contact.name} (${contact.title}) at ${context.broadcasterName}.
+
+CONTEXT:
+- Broadcaster: ${context.broadcasterName}
+- Compatibility Score: ${context.compatibilityScore}/100
+- Migration Risk: ${context.migrationRisk}
+- Current Ad Server: ${context.adServer}
+- Current SSPs: ${context.currentSSPs.join(", ") || "Unknown"}
+- Revenue Opportunity: ${context.revenueOpportunity}
+- Contact: ${contact.name}, ${contact.title}${research}
+
+Return ONLY valid JSON with a "messages" array of exactly 4 strings:
+1. "Crafting outreach strategy for ${contact.name} at ${context.broadcasterName}..." (status)
+2. Personalised angle: why Smartclip is uniquely valuable for THIS broadcaster given their specific ad stack, inventory type, and revenue opportunity. Be specific — reference their actual tech stack.
+3. Recommended approach: channel (LinkedIn/email/event), timing, conversation opener, and what NOT to say
+4. Pilot proposal: a specific low-risk pilot to propose (e.g. CTV inventory test, specific channel, revenue share model)
+
+Return ONLY: { "messages": ["...", "...", "...", "..."] }`;
+
         result = await fetch("/api/pipeline/invoke-llm", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, model }), signal: abortController?.signal,
-        }).then(async (res) => { if (!res.ok) throw new Error("LLM API failed"); return res.json(); });
-        if (result?.messages) context.outreachStrategy = result.messages.join(" ");
-      } else if (nextStage === 4) {
-        const primaryContact = context.decisionMakers[0] || { name: "Unknown", title: "Decision Maker" };
-        const prompt = `Draft outreach email to ${primaryContact.name} at ${context.broadcasterName}.
-          Return: { "messages": ["Drafting email...", "(Review before sending)"], "emailSubject": "...", "emailBody": "..." }`;
-        result = await fetch("/api/pipeline/invoke-llm", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, model }), signal: abortController?.signal,
+          body: JSON.stringify({ prompt }), signal: abortController?.signal,
         }).then(async (res) => { if (!res.ok) throw new Error("LLM API failed"); return res.json(); });
 
-        const messagesText = (result?.messages || []).join("\n");
-        const subjectMatch = messagesText.match(/Subject:\s*(.+)/i);
-        const bodyMatch    = messagesText.match(/Body:\s*([\s\S]+?)(?=\n\n|$)/i);
-        context.emailDraft = subjectMatch && bodyMatch
-          ? { subject: subjectMatch[1].trim(), body: bodyMatch[1].trim() }
-          : { subject: messagesText.split("\n")[0]?.substring(0, 100) ?? "", body: messagesText };
+        if (result?.messages) context.outreachStrategy = (result.messages as string[]).slice(1).join(" ");
+
+      } else if (nextStage === 4) {
+        const contact = context.decisionMakers[0] || { name: context.primaryContact, title: "Head of Ad Tech" };
+        const prompt = `You are a Smartclip business development manager. Write a concise, personalised cold outreach email to ${contact.name} (${contact.title}) at ${context.broadcasterName}.
+
+CONTEXT:
+- Compatibility Score: ${context.compatibilityScore}/100
+- Current Ad Server: ${context.adServer}
+- Current SSPs: ${context.currentSSPs.join(", ") || "Unknown"}
+- Revenue Opportunity: ${context.revenueOpportunity}
+- Outreach Strategy: ${context.outreachStrategy ?? ""}${research}
+
+EMAIL REQUIREMENTS:
+- Subject line: specific, not generic, references their actual situation
+- Body: 4-5 sentences max — who you are, why them specifically, what Smartclip offers that their current setup doesn't, one clear CTA (15-min call)
+- Tone: peer-to-peer, not salesy
+- Do NOT use: "I hope this finds you well", "synergies", "leverage", "touch base"
+
+Return ONLY valid JSON:
+{
+  "messages": ["Drafting personalised email for ${contact.name}...", "Email ready for review"],
+  "emailSubject": "...",
+  "emailBody": "..."
+}`;
+
+        result = await fetch("/api/pipeline/invoke-llm", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }), signal: abortController?.signal,
+        }).then(async (res) => { if (!res.ok) throw new Error("LLM API failed"); return res.json(); });
+
+        if (result?.emailSubject && result?.emailBody) {
+          context.emailDraft = { subject: result.emailSubject, body: result.emailBody };
+        } else {
+          const messagesText = (result?.messages || []).join("\n");
+          const subjectMatch = messagesText.match(/Subject:\s*(.+)/i);
+          const bodyMatch    = messagesText.match(/Body:\s*([\s\S]+?)(?=\n\n|$)/i);
+          context.emailDraft = subjectMatch && bodyMatch
+            ? { subject: subjectMatch[1].trim(), body: bodyMatch[1].trim() }
+            : { subject: messagesText.split("\n")[0]?.substring(0, 100) ?? "", body: messagesText };
+        }
       }
 
       setStages((prev) => {
@@ -279,6 +408,7 @@ export default function Pipeline() {
     setBroadcasterName("");
     setPipelineData({});
     setActiveStage(0);
+    setSelectedDocContent(undefined);
   };
 
   const STAGE_NAMES     = ["Research", "Compatibility", "Decision Makers", "Outreach Plan", "Review"];
@@ -421,12 +551,20 @@ export default function Pipeline() {
                   <div className="h-full">
                     {activeStage === 0 ? (
                       <div className="flex h-full">
+                        {/* Broadcaster doc sidebar — only visible when matching docs exist */}
+                        <BroadcasterDocSidebar
+                          broadcasterName={broadcasterName}
+                          selectedId={selectedDocContent
+                            ? sampleDocuments.find((d) => d.content === selectedDocContent)?.id
+                            : undefined}
+                          onSelect={(doc) => setSelectedDocContent(doc.content)}
+                        />
                         <div className="flex-1 overflow-y-auto">
                           {sharedThreadId ? (
-                            <CopilotKit runtimeUrl={BACKEND_URL}
+                            <CopilotKit runtimeUrl="/api/copilotkit"
                               agent="dashboard_agent"
                               threadId={sharedThreadId}>
-                              {getAppComponent()}
+                              <App initialContent={selectedDocContent} />
                             </CopilotKit>
                           ) : (
                             <div className="flex items-center justify-center h-full">
