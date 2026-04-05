@@ -9,9 +9,8 @@
     "dev": "concurrently -k -n ui,agent -c blue,red \"PORT=3000 npm run dev:ui\" \"PORT=8000 npm run dev:agent\"",
     "dev:ui": "next dev",
     "dev:agent": "npm run dev:agent:py",
-    "dev:agent:py": "cd agents/python && source .venv/bin/activate && python main.py",
-    "install:agent:py": "cd agents/python && uv sync",
-    "install:agent:ts": "cd agents/typescript && pnpm i"
+    "dev:agent:py": "./.venv/bin/python -m uvicorn agent.main:app --host 0.0.0.0 --port $PORT --reload",
+    "install:agent:py": "cd agent && uv sync"
   },
   "dependencies": {
     "@copilotkit/react-core": "1.54.1-next.1",
@@ -19,6 +18,7 @@
     "@copilotkit/runtime": "1.54.1-next.1",
     "@modelcontextprotocol/inspector": "^0.21.1",
     "@modelcontextprotocol/sdk": "^1.28.0",
+    "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-select": "^2.1.2",
@@ -33,9 +33,15 @@
     "openai": "^4.85.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.8.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^2.5.3",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "validator": "^13.15.35",
+    "zod": "^4.3.6",
+    "zon": "^1.0.3"
   },
   "nx": {
     "targets": {
