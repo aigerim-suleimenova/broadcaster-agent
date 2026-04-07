@@ -9,6 +9,8 @@ services:
     envVars:
       - key: NEXT_PUBLIC_AGENT_URL
         value: https://broadcaster-agent-backend.onrender.com
+      - key: AGENT_RUNTIME_URL
+        value: https://broadcaster-agent-backend.onrender.com
       - key: OPENROUTER_API_KEY
         sync: false
       - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID

@@ -9,7 +9,7 @@
     "dev": "concurrently -k -n ui,agent -c blue,red \"PORT=3000 npm run dev:ui\" \"PORT=8000 npm run dev:agent\"",
     "dev:ui": "next dev",
     "dev:agent": "npm run dev:agent:py",
-    "dev:agent:py": "./.venv/bin/python -m uvicorn agent.main:app --host 0.0.0.0 --port $PORT --reload",
+    "dev:agent:py": "PORT=${PORT:-8000} ./.venv/bin/python -m uvicorn agent.main:app --host 0.0.0.0 --port ${PORT:-8000} --reload",
     "install:agent:py": "cd agent && uv sync"
   },
   "dependencies": {
@@ -51,6 +51,7 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.0.0",
     "@types/react": "19.0.1",
     "@types/react-dom": "19.0.2",
