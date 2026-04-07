@@ -46,3 +46,6 @@ agent/.venv/
 
 # claude settings
 .claude/
+
+# production env (may contain secrets)
+.env.production
