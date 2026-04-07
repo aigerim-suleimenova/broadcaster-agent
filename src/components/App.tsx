@@ -35,7 +35,6 @@ const ZONE_ORDER: SemanticZone[] = ['hero', 'metrics', 'insights', 'content', 'm
 type ViewState = 'input' | 'loading' | 'dashboard'
 type DashboardTab = 'dashboard' | 'source'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const motion = framerMotion as any
 
 // ─── Chat panel width ─────────────────────────────────────────────────────────

@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from "react";
 import { motion as framerMotion, AnimatePresence } from "framer-motion";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const motion = framerMotion as any;
 import { Mic, ArrowUp, Search, Radio, Mail, ChevronRight } from "lucide-react";
 
