@@ -16,6 +16,7 @@ import { z } from "zod";
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const CHAT_SUGGESTIONS = sampleDocuments.slice(0, 5).map((doc) => ({
+  title: doc.title ?? "Analyze document",
   message: `Use this sample markdown and generate dashboard now:\n\n${doc.content}`,
 }));
 
