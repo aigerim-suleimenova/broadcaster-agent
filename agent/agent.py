@@ -66,15 +66,18 @@ class DashboardState(BaseModel):
 
 def create_openrouter_model() -> OpenAIChatModel:
     """Create OpenRouter model instance."""
+    from pydantic_ai.providers.openrouter import OpenRouterProvider
+
     # Support OPENAI_API_KEY as a compatibility alias.
     api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
         # Allow server startup (e.g. /health and /info) even without a key.
         # Actual generation calls will fail downstream until a key is configured.
         print("[!] WARNING: OPENROUTER_API_KEY/OPENAI_API_KEY is not set")
+        api_key = "missing-key"
 
     model_name = os.getenv("OPENROUTER_MODEL", "anthropic/claude-sonnet-4")
-    return OpenAIChatModel(model_name, provider='openrouter')
+    return OpenAIChatModel(model_name, provider=OpenRouterProvider(api_key=api_key))
 
 
 # Create the agent with StateDeps for AG-UI integration
