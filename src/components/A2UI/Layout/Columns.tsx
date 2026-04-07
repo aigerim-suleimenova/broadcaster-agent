@@ -32,8 +32,8 @@ export interface ColumnsProps {
  * Supports equal width or auto-fit distribution.
  */
 export function Columns({
-  // @ts-expect-error - count is part of the interface but not used in implementation
-  count,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  count: _count,
   distribution = 'equal',
   gap = '1rem',
   children,
