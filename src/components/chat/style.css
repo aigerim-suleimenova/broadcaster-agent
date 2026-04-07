@@ -1,0 +1,274 @@
+/* ── Signal × CopilotKit theme ────────────────────────────────────────────────
+   Design tokens: obsidian dark (#060911) + electric cyan (#05E8C0) + violet (#7C3AED)
+   CTA: rose-crimson (#F43F5E → #EC4899)
+   Fonts: Syne (display) / DM Sans (body)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* 1. Root token overrides */
+[data-copilotkit] {
+  --background: #060911 !important;
+  --foreground: #EEF2FF !important;
+  --card: #0A0F1A !important;
+  --card-foreground: #EEF2FF !important;
+  --popover: #0A0F1A !important;
+  --popover-foreground: #EEF2FF !important;
+  --primary: #05E8C0 !important;
+  --primary-foreground: #060911 !important;
+  --secondary: #0D1525 !important;
+  --secondary-foreground: rgba(238,242,255,0.75) !important;
+  --muted: #0D1525 !important;
+  --muted-foreground: rgba(238,242,255,0.42) !important;
+  --accent: #0D1525 !important;
+  --accent-foreground: #05E8C0 !important;
+  --border: rgba(5,232,192,0.12) !important;
+  --input: #0A0F1A !important;
+  --ring: rgba(5,232,192,0.4) !important;
+}
+
+/* 2. Chat container */
+.copilotKitChat {
+  background: #060911 !important;
+  color: #EEF2FF !important;
+  padding: 0 !important;
+  font-family: "DM Sans", sans-serif !important;
+}
+
+/* 3. Messages list */
+.copilotKitMessages {
+  background: transparent !important;
+  padding: 1rem 1rem 0.5rem !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.copilotKitMessages::-webkit-scrollbar { display: none !important; }
+
+/* 4. Generic message */
+.copilotKitMessage {
+  color: #EEF2FF !important;
+  font-family: "DM Sans", sans-serif !important;
+}
+.copilotKitMessage * { color: inherit !important; }
+
+/* 5. User message — obsidian glass, cyan border */
+.copilotKitUserMessage {
+  background: rgba(5,232,192,0.07) !important;
+  border: 1px solid rgba(5,232,192,0.2) !important;
+  color: #EEF2FF !important;
+  border-radius: 18px 18px 4px 18px !important;
+  padding: 10px 16px !important;
+  margin: 6px 0 6px auto !important;
+  max-width: 80% !important;
+  width: fit-content !important;
+  font-family: "DM Sans", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  animation: ck-msg-in 0.18s ease-out !important;
+}
+.copilotKitUserMessage,
+.copilotKitUserMessage * { color: #EEF2FF !important; }
+
+/* 6. Assistant message */
+.copilotKitAssistantMessage {
+  background: transparent !important;
+  border: none !important;
+  color: #EEF2FF !important;
+  border-radius: 4px 18px 18px 18px !important;
+  padding: 6px 0 !important;
+  margin: 8px 0 !important;
+  font-family: "DM Sans", sans-serif !important;
+  font-size: 13px !important;
+  animation: ck-msg-in 0.18s ease-out !important;
+}
+.copilotKitAssistantMessage,
+.copilotKitAssistantMessage * { color: #EEF2FF !important; }
+
+/* 7. Markdown typography */
+.copilotKitMarkdownElement {
+  font-family: "DM Sans", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: rgba(238,242,255,0.88) !important;
+  line-height: 1.65 !important;
+}
+.copilotKitMarkdownElement p {
+  margin-bottom: 0.5em !important;
+}
+.copilotKitMarkdownElement p:last-child { margin-bottom: 0 !important; }
+.copilotKitMarkdownElement strong { color: #EEF2FF !important; font-weight: 600 !important; }
+.copilotKitMarkdownElement em { color: rgba(5,232,192,0.85) !important; }
+
+/* 8. Inline code */
+.copilotKitMarkdownElement code {
+  background: rgba(5,232,192,0.08) !important;
+  border: 1px solid rgba(5,232,192,0.18) !important;
+  border-radius: 4px !important;
+  padding: 1px 5px !important;
+  font-size: 0.85em !important;
+  color: #05E8C0 !important;
+}
+.copilotKitMarkdownElement pre {
+  background: #0A0F1A !important;
+  border: 1px solid rgba(5,232,192,0.14) !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  overflow-x: auto !important;
+}
+.copilotKitMarkdownElement pre code {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  color: #05E8C0 !important;
+}
+
+/* 9. CopilotKit panel header — hidden; we use our own Signal header */
+.copilotKitHeader {
+  display: none !important;
+}
+
+/* 10. Separator */
+.copilotKitSeparator {
+  border-color: rgba(5,232,192,0.08) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   11. INPUT AREA — matches ResearchHero's floating glass bar exactly
+   ────────────────────────────────────────────────────────────────────────── */
+
+.copilotKitInput {
+  /* Obsidian glass pill */
+  border-radius: 1rem !important;
+  border: 1px solid rgba(238,242,255,0.09) !important;
+  background: rgba(10,15,28,0.92) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(5,232,192,0.04) !important;
+  color: #EEF2FF !important;
+  margin: 0 12px 12px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.copilotKitInput:focus-within {
+  border-color: rgba(5,232,192,0.28) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(5,232,192,0.1) !important;
+}
+
+.copilotKitInput textarea {
+  background: transparent !important;
+  color: #EEF2FF !important;
+  font-family: "DM Sans", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  padding: 12px 14px !important;
+  scrollbar-width: none !important;
+}
+.copilotKitInput textarea::-webkit-scrollbar { display: none !important; }
+.copilotKitInput textarea::placeholder {
+  color: rgba(238,242,255,0.28) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+.copilotKitInput textarea:focus {
+  color: #EEF2FF !important;
+  outline: none !important;
+}
+
+/* Send button — rose-crimson gradient, round, glowing */
+.copilotKitInput > .copilotKitInputControls > button {
+  background: linear-gradient(135deg, #F43F5E 0%, #EC4899 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease !important;
+  box-shadow: 0 4px 16px rgba(244,63,94,0.45) !important;
+  flex-shrink: 0 !important;
+  margin-right: 4px !important;
+  margin-bottom: 4px !important;
+  align-self: flex-end !important;
+}
+.copilotKitInput > .copilotKitInputControls > button:not([disabled]):hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 24px rgba(244,63,94,0.65) !important;
+}
+.copilotKitInput > .copilotKitInputControls > button[disabled] {
+  background: rgba(238,242,255,0.07) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
+/* 12. Response / action buttons */
+.copilotKitResponseButton {
+  background: transparent !important;
+  border: 0 !important;
+  color: rgba(238,242,255,0.4) !important;
+}
+
+/* 13. Suggestion chips — pill style matching ResearchHero */
+.copilotKitSuggestion {
+  background: rgba(5,232,192,0.04) !important;
+  border: 1px solid rgba(5,232,192,0.18) !important;
+  color: rgba(238,242,255,0.65) !important;
+  border-radius: 9999px !important;
+  font-family: "DM Sans", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 5px 12px !important;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+}
+.copilotKitSuggestion:hover {
+  background: rgba(5,232,192,0.1) !important;
+  border-color: rgba(5,232,192,0.42) !important;
+  color: rgba(238,242,255,0.95) !important;
+}
+
+/* 14. Typing indicator — cyan dots */
+.copilotKitTypingDot,
+.copilotKitTypingIndicator > span,
+.copilotKitTypingIndicator > div > span {
+  display: inline-block !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background-color: #05E8C0 !important;
+  margin: 0 2px !important;
+  animation: ck-dot 1.3s infinite ease-in-out !important;
+}
+.copilotKitTypingDot:nth-child(2),
+.copilotKitTypingIndicator > span:nth-child(2),
+.copilotKitTypingIndicator > div > span:nth-child(2) { animation-delay: 0.18s !important; }
+.copilotKitTypingDot:nth-child(3),
+.copilotKitTypingIndicator > span:nth-child(3),
+.copilotKitTypingIndicator > div > span:nth-child(3) { animation-delay: 0.36s !important; }
+
+/* 15. Streaming shimmer — cyan */
+.copilotKitAssistantMessage[data-streaming="true"] .copilotKitMarkdownElement,
+.copilotKitAssistantMessage.streaming .copilotKitMarkdownElement {
+  background: linear-gradient(90deg, #EEF2FF 0%, #05E8C0 45%, #EEF2FF 100%) !important;
+  background-size: 200% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  animation: ck-shimmer 1.8s linear infinite !important;
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+@keyframes ck-msg-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ck-dot {
+  0%, 60%, 100% { transform: scale(0.65); opacity: 0.4; }
+  30%           { transform: scale(1);    opacity: 1; }
+}
+@keyframes ck-shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}

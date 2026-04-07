@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "CopilotKit Expert MCP": {
+      "type": "http",
+      "url": "https://mcp.copilotkit.ai/mcp"
+    },
+    "research-canvas-mcp": {
+      "type": "stdio",
+      "command": "/usr/bin/node",
+      "args": ["mcp-server.js"],
+      "env": {}
+    }
+  },
+  "inputs": []
+}

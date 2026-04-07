@@ -1,0 +1,45 @@
+[data-copilotkit] {
+  --background: transparent;
+  --foreground: #ffffff;
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --accent: rgba(236, 72, 153, 0.12);
+  --accent-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.2);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: rgba(244, 63, 94, 0.65);
+}
+
+.copilotKitChat {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+
+.copilotKitWindow {
+  background: linear-gradient(180deg, rgba(10, 22, 40, 0.96) 0%, rgba(24, 24, 27, 0.94) 100%) !important;
+  border: 1px solid rgba(236, 72, 153, 0.18) !important;
+  box-shadow: 0 24px 80px rgba(236, 72, 153, 0.18) !important;
+}
+
+.copilotKitHeader {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
+}
+
+.copilotKitButton,
+.copilotKitInput > .copilotKitInputControls > button {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%) !important;
+  color: #ffffff !important;
+}
+
+.copilotKitMessage,
+.copilotKitMessage *,
+.copilotKitMessage p,
+.copilotKitMessage span,
+.copilotKitMessage div,
+.copilotKitMessage a {
+  color: #ffffff !important;
+}
+
+.copilotKitMarkdownElement {
+  color: #d6d3d1 !important;
+}
