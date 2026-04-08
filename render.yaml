@@ -34,6 +34,6 @@ services:
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
-      - key: PORT
-        value: 8000
+      - key: FRONTEND_URL
+        value: https://broadcaster-agent-frontend.onrender.com
     healthCheckPath: /health
