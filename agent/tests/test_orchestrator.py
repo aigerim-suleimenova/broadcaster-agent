@@ -51,8 +51,8 @@ class TestOrchestratorBasic:
         components = orchestrate_dashboard(markdown)
 
         assert len(components) >= 4
-        # First component should be a Section with the title
-        assert components[0].type == "a2ui.Section"
+        # First component should be a header CalloutCard with the title
+        assert components[0].type == "a2ui.CalloutCard"
         assert "Just a Title" in components[0].props.get("title", "")
 
     def test_orchestrate_dashboard_returns_list(self):
@@ -315,8 +315,8 @@ class TestOrchestratorComponentGeneration:
 
         components = orchestrate_dashboard(markdown)
 
-        # First component should be Section with title
-        assert components[0].type == "a2ui.Section"
+        # First component should be a header CalloutCard with the title
+        assert components[0].type == "a2ui.CalloutCard"
         assert "Main Title" in components[0].props.get("title", "")
 
     def test_generates_tldr_for_long_content(self):

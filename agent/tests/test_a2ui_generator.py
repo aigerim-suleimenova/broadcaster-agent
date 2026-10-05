@@ -4203,10 +4203,10 @@ class TestPeopleComponentGenerators:
 
         assert card.type == "a2ui.QuoteCard"
         assert card.id == "quote-card-1"
-        assert card.props["text"] == "The best way to predict the future is to invent it."
+        assert card.props["quote"] == "The best way to predict the future is to invent it."
         assert card.props["author"] == "Alan Kay"
         assert card.props["highlight"] == False
-        assert "source" not in card.props
+        assert "context" not in card.props
 
     def test_generate_quote_card_with_source(self):
         """Test generating a quote card with source."""
@@ -4219,9 +4219,9 @@ class TestPeopleComponentGenerators:
         )
 
         assert card.type == "a2ui.QuoteCard"
-        assert card.props["text"] == "Stay hungry, stay foolish."
+        assert card.props["quote"] == "Stay hungry, stay foolish."
         assert card.props["author"] == "Steve Jobs"
-        assert card.props["source"] == "Stanford Commencement Speech, 2005"
+        assert card.props["context"] == "Stanford Commencement Speech, 2005"
 
     def test_generate_quote_card_highlighted(self):
         """Test generating a highlighted quote card."""
@@ -4248,7 +4248,7 @@ class TestPeopleComponentGenerators:
         )
 
         assert card.type == "a2ui.QuoteCard"
-        assert len(card.props["text"]) == 400
+        assert len(card.props["quote"]) == 400
 
     def test_generate_quote_card_empty_text(self):
         """Test that empty text raises error."""
@@ -4458,7 +4458,7 @@ class TestPeopleComponentGenerators:
         assert testimonials[0].props["highlight"] == True
         assert testimonials[1].props["highlight"] == False
         assert all("author" in q.props for q in testimonials)
-        assert all("source" in q.props for q in testimonials)
+        assert all("context" in q.props for q in testimonials)
 
     def test_people_integration_company_directory(self):
         """Test integration: generating a company directory."""
@@ -6204,8 +6204,8 @@ class TestVsCardGenerator:
 
         assert card.type == "a2ui.VsCard"
         assert card.id == "vs-card-1"
-        assert card.props["itemA"]["name"] == "React"
-        assert card.props["itemB"]["name"] == "Vue"
+        assert card.props["item_a"]["name"] == "React"
+        assert card.props["item_b"]["name"] == "Vue"
         assert "winner" not in card.props
 
     def test_vs_card_with_winner_a(self):
@@ -6218,7 +6218,7 @@ class TestVsCardGenerator:
             winner="a"
         )
 
-        assert card.props["winner"] == "a"
+        assert card.props["winner"] == "left"
 
     def test_vs_card_with_winner_b(self):
         """Test vs card with item B as winner."""
@@ -6230,7 +6230,7 @@ class TestVsCardGenerator:
             winner="b"
         )
 
-        assert card.props["winner"] == "b"
+        assert card.props["winner"] == "right"
 
     def test_vs_card_missing_item_a_name(self):
         """Test that vs card fails if item_a missing name."""
@@ -6678,8 +6678,8 @@ class TestComparisonIntegration:
 
         # Verify vs card
         assert vs_card.type == "a2ui.VsCard"
-        assert vs_card.props["winner"] == "a"
-        assert vs_card.props["itemA"]["name"] == "React"
+        assert vs_card.props["winner"] == "left"
+        assert vs_card.props["item_a"]["name"] == "React"
 
         # Verify comparison table
         assert table.type == "a2ui.ComparisonTable"

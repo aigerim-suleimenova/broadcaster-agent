@@ -5204,7 +5204,7 @@ def orchestrate_dashboard(markdown_content: str) -> list[A2UIComponent]:
     if document_type in ['tutorial', 'guide', 'technical_doc']:
         # Code blocks
         for idx, code_block in enumerate(content_analysis.code_blocks[:5]):
-            code_content = code_block.get('content', '')
+            code_content = code_block.get('code', '')
             if code_content and code_content.strip():  # Only generate if non-empty
                 code_comp = generate_code_block(
                     code=code_content,
@@ -5248,15 +5248,14 @@ def orchestrate_dashboard(markdown_content: str) -> list[A2UIComponent]:
             )
             add_component_with_variety(stat2)
 
-    elif document_type == 'article':
-        # Video cards
-        for youtube_url in content_analysis.youtube_links[:2]:
-            video = generate_video_card(
-                video_url=youtube_url,
-                title="Video Content",
-                description="Related video content"
-            )
-            add_component_with_variety(video)
+    # Video cards (any document type can embed videos)
+    for youtube_url in content_analysis.youtube_links[:2]:
+        video = generate_video_card(
+            video_url=youtube_url,
+            title="Video Content",
+            description="Related video content"
+        )
+        add_component_with_variety(video)
 
     # Add resources from links
     if content_analysis.github_links:
