@@ -119,3 +119,40 @@ A2UI components rendered in App.tsx / pipeline stage UIs
 To add a broadcaster to the mock database, edit both:
 1. `src/app/api/agent-chat/route.ts` — `broadcasterDatabase` object
 2. `mcp-server.ts` — `broadcasterDatabase` object (then recompile to `mcp-server.js`)
+
+## How we work with agents in this repo
+
+Every feature goes through the same loop:
+
+1. **Spec**: `/spec <feature>` writes `specs/<name>.md` (scope, scenarios, security notes, test plan, tasks). No code until the spec is approved.
+2. **Implement**: `/implement specs/<name>.md` works through the tasks one at a time, test-first.
+3. **Review**: `/review` checks the diff for architecture, correctness and maintainability, and hands the security pass to the `security-reviewer` subagent.
+4. **Fix and merge**: a human decides which findings to fix. Nothing merges with failing lint or tests.
+
+### Rules for agents
+
+- Never hard-code secrets. Read them from environment variables and add placeholders to `.env.example`. A hook blocks edits to real `.env` files and content that looks like an API key.
+- Never commit `.venv/`, `node_modules/`, `.env*` (except `.env.example`), `test-results/` or `playwright-report/`. Stage files explicitly by name.
+- Every new behavior gets a test: Playwright in `tests/`, pytest in `agent/tests/`.
+- Keep the two broadcaster databases in sync (see "Adding Broadcasters"). Use `/add-broadcaster`.
+- Gmail access uses the signed-in user's OAuth token only, with the narrowest scope that works. Never send email without explicit user confirmation.
+- If a task turns out bigger than its spec, stop and report back. Don't expand the scope.
+
+### Claude Code setup (`.claude/`)
+
+| Path | Purpose |
+| --- | --- |
+| `.claude/commands/spec.md` | `/spec`: write a spec before coding |
+| `.claude/commands/implement.md` | `/implement`: build an approved spec, test-first |
+| `.claude/commands/review.md` | `/review`: review the diff, delegate the security pass |
+| `.claude/commands/add-broadcaster.md` | `/add-broadcaster`: add mock data in both places, in sync |
+| `.claude/agents/security-reviewer.md` | Subagent: secrets, OAuth, user data, MCP tool access |
+| `.claude/agents/test-writer.md` | Subagent: turns spec scenarios into tests |
+| `.claude/hooks/protect-secrets.mjs` | PreToolUse hook: blocks writes to `.env` files and hard-coded keys |
+| `.claude/hooks/check-edited-file.mjs` | PostToolUse hook: lints each edited file (ruff / eslint) and feeds errors back |
+| `.mcp.json` | Registers this repo's `broadcaster` MCP server and the Playwright test MCP server |
+
+### Known state
+
+- `cd agent && uv run pytest`: 604 passing and 17 failing (A2UI quote/vs-card generators, orchestrator, prompt formatting). Fix these before adding new generator features.
+- `ruff check agent/` reports existing lint errors. The edit hook surfaces them file by file as files are touched.

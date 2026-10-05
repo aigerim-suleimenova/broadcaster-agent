@@ -44,8 +44,15 @@ agent/.venv/
 # playwright mcp artifacts
 .playwright-mcp/
 
-# claude settings
-.claude/
+# claude code: share project setup, keep personal overrides local
+.claude/settings.local.json
 
 # production env (may contain secrets)
 .env.production
+
+# python virtualenvs anywhere in the repo
+**/.venv/
+
+# playwright output
+test-results/
+playwright-report/

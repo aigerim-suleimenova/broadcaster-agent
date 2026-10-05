@@ -1,11 +1,12 @@
 {
   "mcpServers": {
+    "broadcaster": {
+      "command": "npx",
+      "args": ["-y", "tsx", "mcp-server.ts"]
+    },
     "playwright-test": {
       "command": "npx",
-      "args": [
-        "playwright",
-        "run-test-mcp-server"
-      ]
+      "args": ["playwright", "run-test-mcp-server"]
     }
   }
 }
