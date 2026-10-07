@@ -4,14 +4,14 @@
 
 ## What Changes
 
-- Point both Render services (`broadcaster-agent-frontend`, `broadcaster-agent-backend`) at the repo root instead of `research-canvas-standalone/`.
+- Point both Render services (`broadcaster-agent-frontend`, `broadcaster-agent`) at the repo root instead of `research-canvas-standalone/`, and manage them with a Render Blueprint instance so `render.yaml` is what actually deploys. The Blueprint adopts both existing services; no new service is created.
 - Production starts running the root code, which includes:
   - backend CORS that allows the origin in `FRONTEND_URL`
   - pinned `pydantic-ai==1.77.0` plus the `starlette` and `ag-ui-protocol` dependencies
   - the structured JSON contract between `/api/pipeline/invoke-llm` and `Pipeline.tsx`/`PipelineStage.tsx`
   - A2UI prop normalization and skeleton skipping, and the Signal chat UI with `ResearchHero`
 - **BREAKING**: delete `research-canvas-standalone/` (183 tracked files, including a third copy of the broadcaster mock database and `mcp-server.ts`/`.js`).
-- Update `QUICKSTART.md`, `DEPLOYMENT.md` and `README_MCP_SETUP.md` so they no longer reference the standalone directory. Remove the absolute home-directory path from `DEPLOYMENT.md`.
+- Delete `QUICKSTART.md`, `DEPLOYMENT.md` and `README_MCP_SETUP.md`. They describe the old Vercel/Groq deploy, link to docs that don't exist (`MCP_INTEGRATION_GUIDE.md`) and repeat `README.md`/`CLAUDE.md`. Updating them would keep dead docs alive.
 
 ## Capabilities
 
@@ -23,9 +23,9 @@
 
 ## Impact
 
-- **Config**: `render.yaml` (both services' `rootDir`, build and start commands).
+- **Config**: `render.yaml` (both services' `rootDir`, build and start commands). Remove `research-canvas-standalone` from `tsconfig.json` `exclude`.
 - **Removed**: `research-canvas-standalone/` in full.
-- **Docs**: `QUICKSTART.md`, `DEPLOYMENT.md`, `README_MCP_SETUP.md`. The CLAUDE.md note on keeping broadcaster DBs in sync stays accurate: two copies remain (`route.ts`, `mcp-server.ts`).
+- **Removed docs**: `QUICKSTART.md`, `DEPLOYMENT.md`, `README_MCP_SETUP.md`. The CLAUDE.md note on keeping broadcaster DBs in sync stays accurate: two copies remain (`route.ts`, `mcp-server.ts`).
 - **Runtime behavior in production**: frontend UI, pipeline response shape and backend dependencies all change to the root versions. This is the first deploy of that code, so it needs a smoke test.
 - **Dependencies**: production moves from an unpinned `pydantic-ai>=0.1.0` to `==1.77.0`.
 - **Out of scope**: the 17 failing pytest tests, unifying the broadcaster databases, OpenSpec/`/spec` process changes. These are separate changes.
