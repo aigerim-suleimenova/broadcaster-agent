@@ -69,9 +69,19 @@ Found during local verification: `requirements.txt` has `ag-ui-protocol>=0.1.0`,
 Found during local verification: `output: "standalone"` doesn't include `.next/static` or `public/`, so `node .next/standalone/server.js` returns 404 for CSS/JS. The Render frontend build command gets `cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/` appended. This is a pre-existing production problem, independent of which tree deploys.
 *Alternative considered:* a `postbuild` script in `package.json`. Rejected: local `pnpm build` + `next start` doesn't need it, and keeping it in `render.yaml` puts it next to the start command that depends on it.
 
+### 7. Delete the stale root docs instead of updating them
+`QUICKSTART.md`, `DEPLOYMENT.md` and `README_MCP_SETUP.md` describe a Vercel/Groq deploy and an `agents/python/` layout that no longer exist, link to docs that aren't in the repo (`MCP_INTEGRATION_GUIDE.md`), and repeat what `README.md` and `CLAUDE.md` already cover. Deleting them removes the standalone references along with everything else that is wrong in them.
+*Alternative considered:* fix only the standalone paths and the absolute home path (tried locally first). Rejected: the rest of their content would still be wrong.
+
+### 8. Manage both services with a Render Blueprint
+Found during pre-flight (task 1.1): the workspace has no Blueprint instance. `broadcaster-agent-frontend` was created by hand with Root Directory `research-canvas-standalone`, and the backend runs as the hand-made `broadcaster-agent` service (same Root Directory, last deploy failed), not under the `broadcaster-agent-backend` name in `render.yaml`. `render.yaml` has had no effect, so commit 1 changed nothing in production. Creating a Blueprint instance from `render.yaml` makes the file the source of truth: Render applies it to existing services with the same names, so `render.yaml` names the backend `broadcaster-agent` to adopt it rather than create a second backend; the frontend env vars point at `https://broadcaster-agent.onrender.com`. To validate as a Blueprint, `render.yaml` needs `runtime` instead of the deprecated `env`, a `PYTHON_VERSION` env var instead of `pythonVersion` (not a Blueprint field), and `plan: free`, because a new web service otherwise defaults to a paid plan.
+*Alternative considered:* fix the frontend's Root Directory by hand and create the backend by hand. Rejected: `render.yaml` would keep drifting from what is deployed, which is how this problem started.
+*Ordering:* commit 2 deletes `research-canvas-standalone/`. It must not merge until the Blueprint has moved the frontend to the repo root, or the next frontend deploy fails.
+
 ## Risks / Trade-offs
 
-- **[Render dashboard overrides `render.yaml`]** If the services were created by hand rather than from the blueprint, their dashboard "Root Directory" may differ from the file. → Check each service's Settings before merging; update the dashboard if the services don't sync with the blueprint.
+- **[Render dashboard overrides `render.yaml`]** Confirmed: the services were created by hand and the frontend's Root Directory is `research-canvas-standalone`. → Decision 8 (Blueprint instance).
+- **[Blueprint secrets]** `sync: false` variables are only prompted for when the Blueprint is created; later syncs ignore them. → The user enters them in the creation flow and checks the adopted frontend keeps its existing values.
 - **[First production run of root code]** UI, pipeline JSON contract and dependencies all change at once. → Smoke test after deploy: `/health`, a CORS preflight from the frontend origin, one full four-stage pipeline run, one chat-driven dashboard generation.
 - **[Production `pydantic-ai` jumps to 1.77.0]** It was unpinned, so the version actually installed is unknown. → The pin is the version root is developed and tested with; check the backend build log.
 - **[Root build context is bigger]** It includes `agent/`, `tests/`, `openspec/` etc. → Next.js only bundles what `src/` imports. Check that the build time and the standalone output size are reasonable.
@@ -81,9 +91,9 @@ Found during local verification: `output: "standalone"` doesn't include `.next/s
 
 1. Check the Render dashboard Root Directory for both services (see Risks).
 2. Locally from root: `pnpm install && pnpm run build`, then `node .next/standalone/server.js`. Separately: `pip install -r agent/requirements.txt` in a clean venv, then `python -m uvicorn agent.main:app`.
-3. Commit 1: switch `render.yaml` to `rootDir: .`. Merge to `main` and let it deploy.
+3. Commit 1: switch `render.yaml` to `rootDir: .`. Merge to `main` and let it deploy. (Had no effect: no Blueprint.) Then fix `render.yaml` for the Blueprint spec, merge, and create a Blueprint instance from it (Decision 8).
 4. Smoke test (see Risks). **Rollback:** revert commit 1; standalone is still there.
-5. Commit 2: delete `research-canvas-standalone/` and update the three docs. Merge.
+5. Commit 2: delete `research-canvas-standalone/` and the three docs, and drop the `tsconfig.json` exclude entry. Merge.
 
 ## Open Questions
 

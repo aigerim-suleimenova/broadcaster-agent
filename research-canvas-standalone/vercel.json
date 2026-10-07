@@ -1,9 +1,0 @@
-{
-  "buildCommand": "pnpm run build",
-  "installCommand": "npm i -g pnpm@latest && pnpm install",
-  "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-    "NEXT_PUBLIC_COPILOTKIT_API_URL": "@next_public_copilotkit_api_url"
-  }
-}

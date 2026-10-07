@@ -4,6 +4,8 @@ A full-stack AI agent app for broadcaster research and outreach. You give it a b
 
 The whole app was built agent-first with Claude Code, using a spec → implement → review loop. The setup is part of the repo; see [How this was built with agents](#how-this-was-built-with-agents).
 
+**Live demo:** https://broadcaster-agent-frontend.onrender.com. Try `BBC`, `Paramount` or `Al Jazeera`. It runs on Render's free tier, so the first request after a quiet period can take about a minute while the services wake up.
+
 ## What it does
 
 1. **Input analysis**: paste markdown research or enter a broadcaster name.
@@ -46,7 +48,7 @@ mcp-server.ts: MCP server with 5 tools, usable by any MCP client (Claude Code in
 | Agent | Python, Pydantic AI, FastAPI/Starlette, AG-UI protocol, OpenRouter (Claude Sonnet by default) |
 | MCP server | TypeScript, `@modelcontextprotocol/sdk` |
 | Testing | Playwright (E2E), pytest |
-| Delivery | Docker, GitHub Actions, Render |
+| Delivery | Render, managed as a Blueprint (`render.yaml`) |
 
 ## MCP server
 
@@ -87,6 +89,17 @@ cd agent && uv run pytest         # agent unit tests (agent/tests/)
 ```
 
 The test plan behind the E2E suite is in [`specs/broadcaster-search.md`](specs/broadcaster-search.md).
+
+## Deployment
+
+Both services run on Render and are defined in [`render.yaml`](render.yaml), which is linked to Render as a Blueprint. Every push to `main` that changes it syncs the services, and every push redeploys them.
+
+| Service | Render name | Build from repo root |
+| --- | --- | --- |
+| Frontend | `broadcaster-agent-frontend` | `pnpm run build`, then `node .next/standalone/server.js` |
+| Agent | `broadcaster-agent` | `pip install -r agent/requirements.txt`, then `uvicorn agent.main:app` |
+
+Secrets (`OPENROUTER_API_KEY`, the Google OAuth client) are marked `sync: false` and set once per service in the Render dashboard. `GET /health` on the agent reports `agent_ready: true` once its key is set.
 
 ## How this was built with agents
 
