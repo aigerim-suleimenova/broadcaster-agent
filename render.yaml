@@ -2,7 +2,8 @@ services:
   # ── Frontend (Next.js) ────────────────────────────────────────────────────────
   - type: web
     name: broadcaster-agent-frontend
-    env: node
+    runtime: node
+    plan: free
     rootDir: .
     # output: "standalone" leaves out static assets; copy them next to server.js
     buildCommand: pnpm install && pnpm run build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
@@ -27,12 +28,14 @@ services:
   # ── Python Agent (FastAPI / AG-UI) ───────────────────────────────────────────
   - type: web
     name: broadcaster-agent-backend
-    env: python
+    runtime: python
+    plan: free
     rootDir: .
-    pythonVersion: "3.12"
     buildCommand: pip install -r agent/requirements.txt
     startCommand: python -m uvicorn agent.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
       - key: OPENROUTER_API_KEY
         sync: false
       - key: FRONTEND_URL
