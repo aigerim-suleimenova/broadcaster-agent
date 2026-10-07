@@ -12,9 +12,9 @@ services:
       - key: HOSTNAME
         value: "0.0.0.0"
       - key: NEXT_PUBLIC_AGENT_URL
-        value: https://broadcaster-agent-backend.onrender.com
+        value: https://broadcaster-agent.onrender.com
       - key: AGENT_RUNTIME_URL
-        value: https://broadcaster-agent-backend.onrender.com
+        value: https://broadcaster-agent.onrender.com
       - key: OPENROUTER_API_KEY
         sync: false
       - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -27,7 +27,7 @@ services:
 
   # ── Python Agent (FastAPI / AG-UI) ───────────────────────────────────────────
   - type: web
-    name: broadcaster-agent-backend
+    name: broadcaster-agent
     runtime: python
     plan: free
     rootDir: .
