@@ -13,6 +13,16 @@ The whole app was built agent-first with Claude Code, using a spec → implement
 
 The agent renders results with a library of about 50 generative UI components (stat cards, data tables, comparisons, timelines, charts), defined in `src/lib/a2ui-catalog.tsx` and checked by an A2UI validator before rendering.
 
+## Built to model smartclip's broadcaster partnership workflow
+
+I built the pipeline around one question: how would a video ad-tech company like [smartclip](https://smartclip.tv) qualify a broadcaster and approach it?
+
+- **Partnership fit**: stage 2 scores a broadcaster's compatibility with smartclip's video, CTV and HbbTV monetisation offering (`src/components/Pipeline.tsx`).
+- **Existing relationship check**: the `ads.txt` analyzer (`src/lib/adsTxtAnalyzer.ts`) lists the broadcaster's current SSPs and ad servers and flags whether `smartclip.net` is already an authorised seller. This tells a sales team whether it's a new-logo pitch or an expansion.
+- **Outreach**: stages 3 and 4 find the decision-makers and draft a first email based on the fit analysis.
+
+This is an independent portfolio project. I'm not affiliated with smartclip, and it uses no smartclip data. The broadcaster records (BBC, Paramount, Al Jazeera) are mock data for the demo. Only the `ads.txt` lookups fetch real, public files.
+
 ## Architecture
 
 ```
