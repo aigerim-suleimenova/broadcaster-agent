@@ -3,8 +3,9 @@ services:
   - type: web
     name: broadcaster-agent-frontend
     env: node
-    rootDir: research-canvas-standalone
-    buildCommand: pnpm install && pnpm run build
+    rootDir: .
+    # output: "standalone" leaves out static assets; copy them next to server.js
+    buildCommand: pnpm install && pnpm run build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
     startCommand: node .next/standalone/server.js
     envVars:
       - key: HOSTNAME
@@ -27,7 +28,7 @@ services:
   - type: web
     name: broadcaster-agent-backend
     env: python
-    rootDir: research-canvas-standalone
+    rootDir: .
     pythonVersion: "3.12"
     buildCommand: pip install -r agent/requirements.txt
     startCommand: python -m uvicorn agent.main:app --host 0.0.0.0 --port $PORT
