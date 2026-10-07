@@ -1,0 +1,793 @@
+{
+  "summary": {
+    "model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "date": "2026-10-07T16:09:02.219Z",
+    "runsPerVariantPerBroadcaster": 3,
+    "broadcasters": [
+      "BBC",
+      "Paramount",
+      "Al Jazeera",
+      "Channel 4",
+      "RTL"
+    ],
+    "latency": {
+      "llm": {
+        "runs": 15,
+        "p50Ms": 15448,
+        "p95Ms": 50937,
+        "meanTotalTokens": 3206,
+        "meanCompletionTokens": 1770
+      },
+      "adsTxt": {
+        "runs": 15,
+        "p50Ms": 17672,
+        "p95Ms": 23273,
+        "meanTotalTokens": 2945,
+        "meanCompletionTokens": 1497
+      },
+      "adsTxtFetchP50Ms": 381,
+      "p50ReductionPct": -14.4,
+      "p95ReductionPct": 54.3
+    },
+    "tokens": {
+      "reductionPct": 8.1
+    },
+    "llmSspAccuracy": {
+      "precision": 69.8,
+      "recall": 28.6,
+      "unverifiableGuesses": 0
+    }
+  },
+  "samples": [
+    {
+      "variant": "adsTxt",
+      "ms": 9277.037333,
+      "adsTxtMs": 223.13058299999102,
+      "promptTokens": 1436,
+      "completionTokens": 1422,
+      "totalTokens": 2858,
+      "ssps": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "Magnite"
+      ],
+      "broadcaster": "BBC",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 10411.017082999999,
+      "adsTxtMs": 0,
+      "promptTokens": 1426,
+      "completionTokens": 1434,
+      "totalTokens": 2860,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "Xandr"
+      ],
+      "broadcaster": "BBC",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 15447.822166999991,
+      "adsTxtMs": 0,
+      "promptTokens": 1426,
+      "completionTokens": 1849,
+      "totalTokens": 3275,
+      "ssps": [
+        "Magnite",
+        "PubMatic"
+      ],
+      "broadcaster": "BBC",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 12022.488832999996,
+      "adsTxtMs": 269.35837499999616,
+      "promptTokens": 1436,
+      "completionTokens": 1452,
+      "totalTokens": 2888,
+      "ssps": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "Magnite"
+      ],
+      "broadcaster": "BBC",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 16486.068665999992,
+      "adsTxtMs": 536.0938749999914,
+      "promptTokens": 1436,
+      "completionTokens": 1446,
+      "totalTokens": 2882,
+      "ssps": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "Magnite"
+      ],
+      "broadcaster": "BBC",
+      "run": 3
+    },
+    {
+      "variant": "llm",
+      "ms": 10218.334499999997,
+      "adsTxtMs": 0,
+      "promptTokens": 1426,
+      "completionTokens": 1204,
+      "totalTokens": 2630,
+      "ssps": [
+        "Magnite",
+        "SpotX"
+      ],
+      "broadcaster": "BBC",
+      "run": 3
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 13626.385667000024,
+      "adsTxtMs": 725.2171670000243,
+      "promptTokens": 1409,
+      "completionTokens": 1246,
+      "totalTokens": 2655,
+      "ssps": [
+        "FreeWheel",
+        "Google Ad Manager",
+        "Index Exchange",
+        "PubMatic",
+        "OpenX",
+        "Xandr",
+        "Contextual Media",
+        "Magnite",
+        "smartclip"
+      ],
+      "broadcaster": "Paramount",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 23430.553541,
+      "adsTxtMs": 0,
+      "promptTokens": 1391,
+      "completionTokens": 2307,
+      "totalTokens": 3698,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "SpotX"
+      ],
+      "broadcaster": "Paramount",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 16770.080625000002,
+      "adsTxtMs": 0,
+      "promptTokens": 1391,
+      "completionTokens": 1630,
+      "totalTokens": 3021,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "SpotX",
+        "Index Exchange"
+      ],
+      "broadcaster": "Paramount",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 23272.92429200001,
+      "adsTxtMs": 738.2950420000125,
+      "promptTokens": 1409,
+      "completionTokens": 1934,
+      "totalTokens": 3343,
+      "ssps": [
+        "FreeWheel",
+        "Google Ad Manager",
+        "Index Exchange",
+        "PubMatic",
+        "OpenX",
+        "Xandr",
+        "Contextual Media",
+        "Magnite",
+        "smartclip"
+      ],
+      "broadcaster": "Paramount",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 8261.041999999958,
+      "adsTxtMs": 734.8225409999723,
+      "promptTokens": 1409,
+      "completionTokens": 1156,
+      "totalTokens": 2565,
+      "ssps": [
+        "FreeWheel",
+        "Google Ad Manager",
+        "Index Exchange",
+        "PubMatic",
+        "OpenX",
+        "Xandr",
+        "Contextual Media",
+        "Magnite",
+        "smartclip"
+      ],
+      "broadcaster": "Paramount",
+      "run": 3
+    },
+    {
+      "variant": "llm",
+      "ms": 14678.451250000042,
+      "adsTxtMs": 0,
+      "promptTokens": 1391,
+      "completionTokens": 1755,
+      "totalTokens": 3146,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "SpotX",
+        "Index Exchange"
+      ],
+      "broadcaster": "Paramount",
+      "run": 3
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 12196.253000000026,
+      "adsTxtMs": 603.2039159999695,
+      "promptTokens": 1478,
+      "completionTokens": 1429,
+      "totalTokens": 2907,
+      "ssps": [
+        "Google Ad Manager",
+        "Xandr",
+        "PubMatic",
+        "Magnite",
+        "OpenX",
+        "Contextual Media",
+        "Index Exchange",
+        "FreeWheel"
+      ],
+      "broadcaster": "Al Jazeera",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 50936.97295800003,
+      "adsTxtMs": 0,
+      "promptTokens": 1463,
+      "completionTokens": 2029,
+      "totalTokens": 3492,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "OpenX"
+      ],
+      "broadcaster": "Al Jazeera",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 28748.748332999996,
+      "adsTxtMs": 0,
+      "promptTokens": 1463,
+      "completionTokens": 2238,
+      "totalTokens": 3701,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "OpenX"
+      ],
+      "broadcaster": "Al Jazeera",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 20561.16741600004,
+      "adsTxtMs": 406.6090410000179,
+      "promptTokens": 1478,
+      "completionTokens": 1520,
+      "totalTokens": 2998,
+      "ssps": [
+        "Google Ad Manager",
+        "Xandr",
+        "PubMatic",
+        "Magnite",
+        "OpenX",
+        "Contextual Media",
+        "Index Exchange",
+        "FreeWheel"
+      ],
+      "broadcaster": "Al Jazeera",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 18621.822042000014,
+      "adsTxtMs": 269.4571669999277,
+      "promptTokens": 1478,
+      "completionTokens": 1773,
+      "totalTokens": 3251,
+      "ssps": [
+        "Google Ad Manager",
+        "Xandr",
+        "PubMatic",
+        "Magnite",
+        "OpenX",
+        "Contextual Media",
+        "Index Exchange",
+        "FreeWheel"
+      ],
+      "broadcaster": "Al Jazeera",
+      "run": 3
+    },
+    {
+      "variant": "llm",
+      "ms": 14623.172334000003,
+      "adsTxtMs": 0,
+      "promptTokens": 1463,
+      "completionTokens": 1364,
+      "totalTokens": 2827,
+      "ssps": [
+        "Magnite",
+        "PubMatic"
+      ],
+      "broadcaster": "Al Jazeera",
+      "run": 3
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 22355.652374999947,
+      "adsTxtMs": 415.77216699998826,
+      "promptTokens": 1460,
+      "completionTokens": 1312,
+      "totalTokens": 2772,
+      "ssps": [
+        "FreeWheel"
+      ],
+      "broadcaster": "Channel 4",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 27373.54812500009,
+      "adsTxtMs": 0,
+      "promptTokens": 1470,
+      "completionTokens": 1956,
+      "totalTokens": 3426,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "Index Exchange"
+      ],
+      "broadcaster": "Channel 4",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 22019.60499999998,
+      "adsTxtMs": 0,
+      "promptTokens": 1470,
+      "completionTokens": 1903,
+      "totalTokens": 3373,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "Google Ad Manager"
+      ],
+      "broadcaster": "Channel 4",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 18354.904374999925,
+      "adsTxtMs": 380.67212499992456,
+      "promptTokens": 1460,
+      "completionTokens": 1817,
+      "totalTokens": 3277,
+      "ssps": [
+        "FreeWheel"
+      ],
+      "broadcaster": "Channel 4",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 17671.894333999953,
+      "adsTxtMs": 371.13891700003296,
+      "promptTokens": 1460,
+      "completionTokens": 1563,
+      "totalTokens": 3023,
+      "ssps": [
+        "FreeWheel"
+      ],
+      "broadcaster": "Channel 4",
+      "run": 3
+    },
+    {
+      "variant": "llm",
+      "ms": 12620.143207999994,
+      "adsTxtMs": 0,
+      "promptTokens": 1470,
+      "completionTokens": 1527,
+      "totalTokens": 2997,
+      "ssps": [
+        "Magnite",
+        "PubMatic",
+        "SpotX"
+      ],
+      "broadcaster": "Channel 4",
+      "run": 3
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 11145.031374999904,
+      "adsTxtMs": 169.75833300000522,
+      "promptTokens": 1457,
+      "completionTokens": 1201,
+      "totalTokens": 2658,
+      "ssps": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "smartclip",
+        "Magnite",
+        "SpotX",
+        "FreeWheel",
+        "AOL Advertising",
+        "Contextual Media"
+      ],
+      "broadcaster": "RTL",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 11455.01870799996,
+      "adsTxtMs": 0,
+      "promptTokens": 1430,
+      "completionTokens": 1160,
+      "totalTokens": 2590,
+      "ssps": [
+        "SpotX",
+        "Magnite",
+        "PubMatic"
+      ],
+      "broadcaster": "RTL",
+      "run": 1
+    },
+    {
+      "variant": "llm",
+      "ms": 12141.426333000069,
+      "adsTxtMs": 0,
+      "promptTokens": 1430,
+      "completionTokens": 998,
+      "totalTokens": 2428,
+      "ssps": [
+        "SpotX",
+        "Magnite",
+        "PubMatic"
+      ],
+      "broadcaster": "RTL",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 18246.912916,
+      "adsTxtMs": 180.72579099994618,
+      "promptTokens": 1457,
+      "completionTokens": 1445,
+      "totalTokens": 2902,
+      "ssps": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "smartclip",
+        "Magnite",
+        "SpotX",
+        "FreeWheel",
+        "AOL Advertising",
+        "Contextual Media"
+      ],
+      "broadcaster": "RTL",
+      "run": 2
+    },
+    {
+      "variant": "adsTxt",
+      "ms": 20207.11512500001,
+      "adsTxtMs": 199.65762499999255,
+      "promptTokens": 1457,
+      "completionTokens": 1745,
+      "totalTokens": 3202,
+      "ssps": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "smartclip",
+        "Magnite",
+        "SpotX",
+        "FreeWheel",
+        "AOL Advertising",
+        "Contextual Media"
+      ],
+      "broadcaster": "RTL",
+      "run": 3
+    },
+    {
+      "variant": "llm",
+      "ms": 37848.40945799998,
+      "adsTxtMs": 0,
+      "promptTokens": 1430,
+      "completionTokens": 3198,
+      "totalTokens": 4628,
+      "ssps": [
+        "SpotX",
+        "Magnite"
+      ],
+      "broadcaster": "RTL",
+      "run": 3
+    }
+  ],
+  "accuracy": [
+    {
+      "broadcaster": "BBC",
+      "truth": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "Magnite"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "BBC",
+      "truth": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "Magnite"
+      ],
+      "llmGuesses": 2,
+      "verifiableGuesses": 2,
+      "correctGuesses": 2,
+      "truthFound": 2
+    },
+    {
+      "broadcaster": "BBC",
+      "truth": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "Magnite"
+      ],
+      "llmGuesses": 2,
+      "verifiableGuesses": 2,
+      "correctGuesses": 1,
+      "truthFound": 1
+    },
+    {
+      "broadcaster": "Paramount",
+      "truth": [
+        "FreeWheel",
+        "Google Ad Manager",
+        "Index Exchange",
+        "PubMatic",
+        "OpenX",
+        "Xandr",
+        "Contextual Media",
+        "Magnite",
+        "smartclip"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 2,
+      "truthFound": 2
+    },
+    {
+      "broadcaster": "Paramount",
+      "truth": [
+        "FreeWheel",
+        "Google Ad Manager",
+        "Index Exchange",
+        "PubMatic",
+        "OpenX",
+        "Xandr",
+        "Contextual Media",
+        "Magnite",
+        "smartclip"
+      ],
+      "llmGuesses": 4,
+      "verifiableGuesses": 4,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "Paramount",
+      "truth": [
+        "FreeWheel",
+        "Google Ad Manager",
+        "Index Exchange",
+        "PubMatic",
+        "OpenX",
+        "Xandr",
+        "Contextual Media",
+        "Magnite",
+        "smartclip"
+      ],
+      "llmGuesses": 4,
+      "verifiableGuesses": 4,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "Al Jazeera",
+      "truth": [
+        "Google Ad Manager",
+        "Xandr",
+        "PubMatic",
+        "Magnite",
+        "OpenX",
+        "Contextual Media",
+        "Index Exchange",
+        "FreeWheel"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "Al Jazeera",
+      "truth": [
+        "Google Ad Manager",
+        "Xandr",
+        "PubMatic",
+        "Magnite",
+        "OpenX",
+        "Contextual Media",
+        "Index Exchange",
+        "FreeWheel"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "Al Jazeera",
+      "truth": [
+        "Google Ad Manager",
+        "Xandr",
+        "PubMatic",
+        "Magnite",
+        "OpenX",
+        "Contextual Media",
+        "Index Exchange",
+        "FreeWheel"
+      ],
+      "llmGuesses": 2,
+      "verifiableGuesses": 2,
+      "correctGuesses": 2,
+      "truthFound": 2
+    },
+    {
+      "broadcaster": "Channel 4",
+      "truth": [
+        "FreeWheel"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 0,
+      "truthFound": 0
+    },
+    {
+      "broadcaster": "Channel 4",
+      "truth": [
+        "FreeWheel"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 0,
+      "truthFound": 0
+    },
+    {
+      "broadcaster": "Channel 4",
+      "truth": [
+        "FreeWheel"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 0,
+      "truthFound": 0
+    },
+    {
+      "broadcaster": "RTL",
+      "truth": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "smartclip",
+        "Magnite",
+        "SpotX",
+        "FreeWheel",
+        "AOL Advertising",
+        "Contextual Media"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "RTL",
+      "truth": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "smartclip",
+        "Magnite",
+        "SpotX",
+        "FreeWheel",
+        "AOL Advertising",
+        "Contextual Media"
+      ],
+      "llmGuesses": 3,
+      "verifiableGuesses": 3,
+      "correctGuesses": 3,
+      "truthFound": 3
+    },
+    {
+      "broadcaster": "RTL",
+      "truth": [
+        "Xandr",
+        "Google Ad Manager",
+        "Index Exchange",
+        "OpenX",
+        "PubMatic",
+        "smartclip",
+        "Magnite",
+        "SpotX",
+        "FreeWheel",
+        "AOL Advertising",
+        "Contextual Media"
+      ],
+      "llmGuesses": 2,
+      "verifiableGuesses": 2,
+      "correctGuesses": 2,
+      "truthFound": 2
+    }
+  ]
+}

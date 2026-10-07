@@ -126,7 +126,7 @@ I build with Claude Code as the main implementer and review its output myself. T
 
 **Where I corrected the agent**
 
-- **Replaced an LLM step with code.** The first version asked the LLM to research each broadcaster's ad stack. I replaced that step with a deterministic `ads.txt` parser (`src/lib/adsTxtAnalyzer.ts`), which removed its token cost and latency and made the results reproducible.
+- **Replaced an LLM step with code.** The first version asked the LLM to research each broadcaster's ad stack. Stage 2 now reads the real ad server and SSPs from the broadcaster's `ads.txt` (`src/lib/adsTxtAnalyzer.ts`) and only asks the LLM to score them, falling back to the LLM when no `ads.txt` is available. `npm run bench:stage1` compares both versions on 10 real broadcasters (latency p50/p95, tokens, and how many of the LLM's SSP guesses `ads.txt` confirms) and writes `bench/results.json`.
 - **Stopped committing what doesn't belong.** An early commit included a Python virtual environment, and a secret got into the history that way. I revoked it, removed the folder, and added the `protect-secrets` hook and the `security-reviewer` subagent so the agent can't repeat the mistake.
 
 ## Project layout
@@ -137,5 +137,6 @@ agent/          Python Pydantic AI agent and its tests
 mcp-server.ts   MCP server (compiled to mcp-server.js for production)
 specs/          Specs and test plans
 tests/          Playwright E2E tests
+bench/          Stage-1 benchmark: LLM ad-stack research vs ads.txt analyzer
 .claude/        Claude Code commands, subagents, hooks and settings
 ```

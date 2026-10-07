@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { motion, AnimatePresence } from "framer-motion";
 import PipelineStage from "@/components/pipeline/PipelineStage";
 import { OutreachSendStage } from "@/components/OutreachSendStage";
+import type { AdsTxtAnalysis } from "@/lib/adsTxtAnalyzer";
+import { buildAdsTxtStage1Prompt, buildLlmStage1Prompt, describeAdStack } from "@/lib/stage1Prompts";
 
 import App from "./App";
 import { CopilotKit } from "@copilotkit/react-core";
@@ -40,6 +42,17 @@ function computeCompatibilityScore(breakdown: ScoreBreakdown): number {
       0
     )
   );
+}
+
+interface Stage1LlmResult {
+  messages?: string[];
+  adServer?: string;
+  currentSSPs?: string[];
+  videoInventory?: string;
+  revenueSummary?: string;
+  migrationRisk?: string;
+  revenueOpportunity?: string;
+  scoreBreakdown?: ScoreBreakdown;
 }
 
 interface PipelineContext {
@@ -226,35 +239,27 @@ export default function Pipeline() {
       setStageStatuses((prev) => { const n = [...prev]; n[nextStage] = "active"; return n; });
 
       if (nextStage === 1) {
-        const prompt = `You are a Smartclip partnership analyst. Smartclip is a video ad tech company that provides SSP, ad serving, and CTV monetisation solutions for broadcasters.
+        // Ad stack facts come from ads.txt (deterministic, no tokens); the LLM only scores them.
+        // If ads.txt can't be fetched, fall back to letting the LLM research the ad stack.
+        let adsTxt: AdsTxtAnalysis | undefined;
+        try {
+          const adsRes = await fetch("/api/pipeline/analyze-ads-txt", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ domain: context.domain }), signal: abortController?.signal,
+          });
+          if (adsRes.ok) {
+            const data = (await adsRes.json()) as { analysis: AdsTxtAnalysis };
+            if (data.analysis.fetched) adsTxt = data.analysis;
+          }
+        } catch {
+          // Fall back to the LLM-only prompt below
+        }
 
-Analyze "${context.broadcasterName}" for Smartclip partnership compatibility based on the research below.${research}
+        const prompt = adsTxt
+          ? buildAdsTxtStage1Prompt(context.broadcasterName, research, adsTxt)
+          : buildLlmStage1Prompt(context.broadcasterName, research);
 
-Score each criterion from 0–100 with a one-sentence reason. Then return a JSON object with this exact shape:
-
-{
-  "messages": [
-    "Analyzing ad tech stack for ${context.broadcasterName}...",
-    "<Ad Server & SSP summary: what server they use, current SSP partners, incremental demand vs conflicts>",
-    "<Video Inventory: pre-roll/mid-roll/CTV/HbbTV volume and types, fit with Smartclip demand>",
-    "<Revenue Opportunity: estimated CPM uplift, migration complexity, timeline>"
-  ],
-  "adServer": "<name>",
-  "currentSSPs": ["<ssp1>", "<ssp2>"],
-  "migrationRisk": "<low|medium|high>",
-  "revenueOpportunity": "<estimate>",
-  "scoreBreakdown": {
-    "adServerCompatibility": { "score": <0-100>, "reason": "<one sentence>" },
-    "sspOverlap":            { "score": <0-100>, "reason": "<one sentence>" },
-    "videoInventory":        { "score": <0-100>, "reason": "<one sentence>" },
-    "revenueOpportunity":    { "score": <0-100>, "reason": "<one sentence>" },
-    "migrationEase":         { "score": <0-100>, "reason": "<one sentence — higher = easier to migrate>" }
-  }
-}
-
-Weights applied in code: adServerCompatibility 25%, sspOverlap 20%, videoInventory 25%, revenueOpportunity 15%, migrationEase 15%.
-Return ONLY valid JSON with no extra text.`;
-
+        let r: Stage1LlmResult | undefined;
         try {
           const res = await fetch("/api/pipeline/invoke-llm", {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -262,7 +267,7 @@ Return ONLY valid JSON with no extra text.`;
           });
 
           if (!res.ok) throw new Error(`API returned ${res.status}`);
-          result = await res.json();
+          r = (await res.json()) as Stage1LlmResult;
         } catch (apiError) {
           result = {
             messages: [
@@ -274,20 +279,28 @@ Return ONLY valid JSON with no extra text.`;
           };
         }
 
-        if (result && Array.isArray(result.messages)) {
-          const r = result as {
-            messages: string[];
-            adServer?: string;
-            currentSSPs?: string[];
-            migrationRisk?: string;
-            revenueOpportunity?: string;
-            scoreBreakdown?: ScoreBreakdown;
-          };
-          context.adServer = r.adServer ?? "Unknown";
-          context.currentSSPs = r.currentSSPs ?? [];
+        if (r) {
+          if (adsTxt) {
+            context.adServer = adsTxt.primaryAdServer;
+            context.currentSSPs = adsTxt.foundSSPs;
+            context.smartclipPresent = adsTxt.isSmartclipPresent;
+            r.messages = [
+              `Analyzing ${adsTxt.domain}/ads.txt for ${context.broadcasterName}...`,
+              describeAdStack(adsTxt),
+              r.videoInventory ?? "",
+              r.revenueSummary ?? "",
+            ];
+          } else {
+            context.adServer = r.adServer ?? "Unknown";
+            context.currentSSPs = r.currentSSPs ?? [];
+          }
+          result = r;
+        }
+
+        if (r && Array.isArray(r.messages)) {
           context.migrationRisk = (r.migrationRisk?.toLowerCase() ?? "medium") as "low" | "medium" | "high";
           context.revenueOpportunity = r.revenueOpportunity ?? "";
-          context.compatibilityNotes = (result.messages as string[])[3] ?? "";
+          context.compatibilityNotes = r.messages[3] ?? "";
           if (r.scoreBreakdown) {
             context.scoreBreakdown = r.scoreBreakdown;
             context.compatibilityScore = computeCompatibilityScore(r.scoreBreakdown);
