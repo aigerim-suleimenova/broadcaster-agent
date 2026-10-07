@@ -9,8 +9,8 @@ fastapi>=0.115.0
 starlette>=0.40.0,<1.0.0
 uvicorn[standard]>=0.32.0
 
-# AG-UI protocol
-ag-ui-protocol>=0.1.0
+# AG-UI protocol (keep in sync with pyproject.toml; 1.0 breaks pydantic-ai 1.77.0)
+ag-ui-protocol>=0.1.10,<1.0
 
 # HTTP client for OpenRouter
 httpx>=0.27.0

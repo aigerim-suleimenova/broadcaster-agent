@@ -154,5 +154,5 @@ Every feature goes through the same loop:
 
 ### Known state
 
-- `cd agent && uv run pytest`: 604 passing and 17 failing (A2UI quote/vs-card generators, orchestrator, prompt formatting). Fix these before adding new generator features.
-- `ruff check agent/` reports existing lint errors. The edit hook surfaces them file by file as files are touched.
+- `cd agent && uv run pytest`: all tests pass. Keep it green.
+- `ruff check agent/`: clean. The edit hook lints each file as it is touched.

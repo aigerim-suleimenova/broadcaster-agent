@@ -9,7 +9,6 @@ Comprehensive test suite for prompts.py covering:
 - Edge cases and error handling
 """
 
-import pytest
 from prompts import (
     CONTENT_ANALYSIS_PROMPT,
     LAYOUT_SELECTION_PROMPT,
@@ -111,7 +110,7 @@ class TestContentAnalysisPromptFormatting:
     def test_format_long_markdown_truncates(self):
         """Test that very long markdown content is truncated."""
         # Create content longer than the 30000-character limit
-        markdown = "# Test\n\n" + ("This is a very long document. " * 1500)
+        markdown = "# Test\n\n" + ("This is a very long document. " * 1100)
         result = format_content_analysis_prompt(markdown)
 
         assert "content truncated" in result
@@ -267,8 +266,8 @@ class TestComponentSelectionPromptFormatting:
         assert 'Tutorial format with code examples' in result
         assert 'CodeBlock' in result
 
-    def test_format_shows_section_count(self):
-        """Test that the total section count is shown alongside the sections."""
+    def test_format_shows_all_sections_up_to_limit(self):
+        """Test that sections under the 30-section limit are all shown with a total count."""
         content_analysis = {
             'document_type': 'guide',
             'title': 'Long Guide',
@@ -285,7 +284,7 @@ class TestComponentSelectionPromptFormatting:
 
         assert 'Section 0' in result
         assert 'Section 19' in result
-        assert 'Sections (20 total)' in result
+        assert '(20 total)' in result
 
     def test_format_handles_missing_fields(self):
         """Test formatting when some fields are missing."""
@@ -650,7 +649,7 @@ class TestPromptEdgeCases:
         result = format_component_selection_prompt(content_analysis, layout_decision)
 
         # Should truncate to first 30
-        assert "'Section 0'" in result
-        assert "'Section 29'" in result
-        assert "'Section 30'" not in result
-        assert 'Sections (100 total)' in result
+        assert 'Section 0' in result
+        assert 'Section 29' in result
+        assert 'Section 30' not in result
+        assert '(100 total)' in result

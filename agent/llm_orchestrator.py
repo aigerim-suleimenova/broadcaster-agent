@@ -16,9 +16,7 @@ from dotenv import load_dotenv
 from a2ui_generator import (
     A2UIComponent,
     generate_component,
-    generate_id,
     reset_id_counter,
-    VALID_COMPONENT_TYPES,
     is_valid_external_url,
     # Component generators
     generate_tldr,
@@ -38,7 +36,6 @@ from a2ui_generator import (
     generate_checklist_item,
     generate_bullet_point,
     generate_section,
-    generate_grid,
     generate_expert_tip,
     generate_tag,
     generate_badge,
@@ -46,15 +43,12 @@ from a2ui_generator import (
     generate_trend_indicator,
     generate_metric_row,
     generate_comparison_bar,
-    generate_ranked_item,
-    generate_pro_con_item,
-    generate_accordion,
     generate_executive_summary,
     generate_tool_card,
     generate_book_card,
     generate_timeline_event,
 )
-from content_analyzer import parse_markdown, ContentAnalysis, _classify_heuristic
+from content_analyzer import parse_markdown, _classify_heuristic
 from prompts import (
     format_content_analysis_prompt,
     format_layout_selection_prompt,
@@ -1205,19 +1199,3 @@ async def orchestrate_dashboard_with_llm(markdown_content: str) -> AsyncGenerato
 
     print(f"\n[COMPLETE] Generated {components_built} components with {len(component_types_used)} unique types")
     print("="*60 + "\n")
-
-
-async def orchestrate_dashboard_with_llm_list(markdown_content: str) -> list[A2UIComponent]:
-    """
-    Synchronous list version that collects all components.
-
-    Args:
-        markdown_content: Raw markdown content
-
-    Returns:
-        List of A2UIComponent instances
-    """
-    components = []
-    async for component in orchestrate_dashboard_with_llm(markdown_content):
-        components.append(component)
-    return components

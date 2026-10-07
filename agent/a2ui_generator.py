@@ -5248,7 +5248,7 @@ def orchestrate_dashboard(markdown_content: str) -> list[A2UIComponent]:
             )
             add_component_with_variety(stat2)
 
-    # Video cards (any document type can embed videos)
+    # Add video cards for any document type with YouTube links
     for youtube_url in content_analysis.youtube_links[:2]:
         video = generate_video_card(
             video_url=youtube_url,

@@ -18,15 +18,15 @@ _AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if _AGENT_DIR not in sys.path:
     sys.path.insert(0, _AGENT_DIR)
 
-from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
-from pydantic_ai.settings import ModelSettings
-from pydantic_ai.ag_ui import StateDeps
-from pydantic_ai.models.openai import OpenAIChatModel
-from ag_ui.core import EventType, StateSnapshotEvent
+from pydantic import BaseModel, Field  # noqa: E402
+from pydantic_ai import Agent, RunContext  # noqa: E402
+from pydantic_ai.settings import ModelSettings  # noqa: E402
+from pydantic_ai.ag_ui import StateDeps  # noqa: E402
+from pydantic_ai.models.openai import OpenAIChatModel  # noqa: E402
+from ag_ui.core import EventType, StateSnapshotEvent  # noqa: E402
 
 # Load environment variables
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
 _agent_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_agent_dir, ".env"))
 load_dotenv()  # Also try project root .env
@@ -191,7 +191,7 @@ async def generate_components(ctx: RunContext[StateDeps[DashboardState]]) -> Sta
 
     state = ctx.deps.state
 
-    print(f"[TOOL] generate_components: starting")
+    print("[TOOL] generate_components: starting")
 
     # Update status
     state.status = "generating"

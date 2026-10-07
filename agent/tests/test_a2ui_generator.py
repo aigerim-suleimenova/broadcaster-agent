@@ -73,14 +73,6 @@ from a2ui_generator import (
     generate_vs_card,
     generate_feature_matrix,
     generate_pricing_table,
-    # Layout generators
-    generate_section,
-    generate_grid,
-    generate_columns,
-    generate_tabs,
-    generate_accordion,
-    generate_carousel,
-    generate_sidebar,
 )
 
 
@@ -4205,7 +4197,7 @@ class TestPeopleComponentGenerators:
         assert card.id == "quote-card-1"
         assert card.props["quote"] == "The best way to predict the future is to invent it."
         assert card.props["author"] == "Alan Kay"
-        assert card.props["highlight"] == False
+        assert card.props["highlight"] is False
         assert "context" not in card.props
 
     def test_generate_quote_card_with_source(self):
@@ -4234,7 +4226,7 @@ class TestPeopleComponentGenerators:
         )
 
         assert card.type == "a2ui.QuoteCard"
-        assert card.props["highlight"] == True
+        assert card.props["highlight"] is True
 
     def test_generate_quote_card_long_quote(self):
         """Test generating a quote card with long text (under 500 chars)."""
@@ -4455,8 +4447,8 @@ class TestPeopleComponentGenerators:
         # Verify testimonials
         assert len(testimonials) == 3
         assert all(q.type == "a2ui.QuoteCard" for q in testimonials)
-        assert testimonials[0].props["highlight"] == True
-        assert testimonials[1].props["highlight"] == False
+        assert testimonials[0].props["highlight"] is True
+        assert testimonials[1].props["highlight"] is False
         assert all("author" in q.props for q in testimonials)
         assert all("context" in q.props for q in testimonials)
 
