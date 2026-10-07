@@ -28,18 +28,19 @@ yarn-error.log*
 # local env files
 .env*.local
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 .env
 
-# python virtualenv
+# python
 .venv/
 agent/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 
 # playwright mcp artifacts
 .playwright-mcp/
