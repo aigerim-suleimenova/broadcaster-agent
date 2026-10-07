@@ -10,7 +10,9 @@
     "dev:ui": "next dev",
     "dev:agent": "npm run dev:agent:py",
     "dev:agent:py": "PORT=${PORT:-8000} ./.venv/bin/python -m uvicorn agent.main:app --host 0.0.0.0 --port ${PORT:-8000} --reload",
-    "install:agent:py": "cd agent && uv sync"
+    "install:agent:py": "cd agent && uv sync",
+    "bench:stage1": "sh -c 'if [ -f agent/.env ]; then set -a; . ./agent/.env; set +a; fi; tsx bench/stage1.ts'",
+    "bench:stage1:free": "OPENROUTER_MODEL=google/gemma-4-31b-it:free BROADCASTERS=5 RUNS=3 npm run bench:stage1"
   },
   "dependencies": {
     "@copilotkit/react-core": "1.54.1-next.1",
@@ -53,6 +55,7 @@
     "eslint-config-next": "15.1.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
