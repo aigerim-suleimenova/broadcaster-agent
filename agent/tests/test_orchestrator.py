@@ -51,8 +51,8 @@ class TestOrchestratorBasic:
         components = orchestrate_dashboard(markdown)
 
         assert len(components) >= 4
-        # First component should be a Section with the title
-        assert components[0].type == "a2ui.Section"
+        # First component should be a header callout with the title
+        assert components[0].type == "a2ui.CalloutCard"
         assert "Just a Title" in components[0].props.get("title", "")
 
     def test_orchestrate_dashboard_returns_list(self):
@@ -214,9 +214,7 @@ Launch to production
 
         components = orchestrate_dashboard(markdown)
 
-        # Should have step cards for tutorial content
-        step_cards = [c for c in components if c.type == "a2ui.StepCard"]
-        # May or may not have steps depending on classification, but should have variety
+        # Step cards and tables depend on heuristic classification; only check the minimum
         assert len(components) >= 4
 
     def test_research_content_generates_tables(self):
@@ -232,9 +230,7 @@ Launch to production
 
         components = orchestrate_dashboard(markdown)
 
-        # Should have table component
-        tables = [c for c in components if c.type == "a2ui.DataTable"]
-        # Tables should be generated if detected
+        # Step cards and tables depend on heuristic classification; only check the minimum
         assert len(components) >= 4
 
     def test_research_content_generates_stat_cards(self):
@@ -315,8 +311,8 @@ class TestOrchestratorComponentGeneration:
 
         components = orchestrate_dashboard(markdown)
 
-        # First component should be Section with title
-        assert components[0].type == "a2ui.Section"
+        # First component should be a header callout with the title
+        assert components[0].type == "a2ui.CalloutCard"
         assert "Main Title" in components[0].props.get("title", "")
 
     def test_generates_tldr_for_long_content(self):
